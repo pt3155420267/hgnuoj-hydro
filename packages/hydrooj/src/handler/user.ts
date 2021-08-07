@@ -144,12 +144,20 @@ class UserRegisterWithCodeHandler extends Handler {
     @param('verifyPassword', Types.String)
     @param('uname', Types.String, isUname)
     @param('code', Types.String)
+    // 学生信息
+    @param('stuname', Types.String, (s) => /^[\u4E00-\u9FA5]{2,4}$/.test(s))
+    @param('stuid', Types.String, (s) => /^2\d{7}$|2\d{12}$/.test(s))
+    @param('stuclass', Types.String, (s) => /^[\u4E00-\u9FA5]{2,3}[1-2][0-9]{3}$/.test(s))
     async post(
         domainId: string,
         password: string,
         verify: string,
         uname: string,
         code: string,
+        // 学生信息
+        stuname: string,
+        stuid: string,
+        stuclass: string,
     ) {
         const tdoc = await token.get(code, token.TYPE_REGISTRATION);
         if (!tdoc || (!tdoc.mail && !tdoc.phone)) throw new InvalidTokenError(token.TYPE_REGISTRATION, code);
@@ -162,6 +170,8 @@ class UserRegisterWithCodeHandler extends Handler {
             undefined,
             this.request.ip,
         );
+        // 插入学生信息
+        await student.create(uid, stuclass, stuname, stuid);
         await token.del(code, token.TYPE_REGISTRATION);
         const [id, domain] = tdoc.mail.split('@');
         if (domain === 'qq.com' && !Number.isNaN(+id)) await user.setById(uid, { avatar: `qq:${id}` });
@@ -234,7 +244,6 @@ class UserLostPassWithCodeHandler extends Handler {
 class UserDetailHandler extends Handler {
     @param('uid', Types.Int)
     async get(domainId: string, uid: number) {
-        console.log(`user:${uid}`);
         if (uid === 0) throw new UserNotFoundError(0);
         const isSelfProfile = this.user._id === uid;
         const udoc = await user.getById(domainId, uid);
@@ -270,6 +279,7 @@ class UserDetailHandler extends Handler {
             ['Hydro', 'homepage'],
             ['user_detail', 'user_detail', { uid }],
         ];
+        const studoc = await student.getStuInfoById(uid);
         this.response.template = 'user_detail.html';
         this.response.body = {
             isSelfProfile,
@@ -280,6 +290,7 @@ class UserDetailHandler extends Handler {
             pcount,
             pdict,
             path,
+            studoc,
         };
         this.extraTitleContent = udoc.uname;
     }
@@ -378,13 +389,26 @@ class OauthCallbackHandler extends Handler {
 
 // HGNUOJ 学生信息
 class StudentInfoHandler extends Handler {
+    // @param('uid', Types.Int)
+    // async get(domainId: string, uid: number) {
+    //     const res = await student.getStuInfoById(uid);
+    //     this.response.body = res;
+    // }
+
     @param('uid', Types.Int)
-    async get(domainId: string, uid: number) {
-        // todo
-        console.log(uid);
-        const res = await student.getStuInfoById(uid);
-        console.log(res);
-        this.response.body = res;
+    @post('cls', Types.String, true)
+    @post('name', Types.String, true)
+    @post('stuid', Types.String, true)
+    async post(domainId: string, uid: number, cls?: string, name?: string, stuid?: string) {
+        const studoc = {
+            class: cls, name, stuid,
+        };
+        const $set = {};
+        for (const key in studoc) {
+            if (studoc[key] !== undefined) $set[key] = studoc[key];
+        }
+        const res = await student.setById(uid, $set);
+        return res;
     }
 }
 
