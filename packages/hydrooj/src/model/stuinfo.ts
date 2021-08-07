@@ -7,6 +7,7 @@ import { Logger } from '../logger';
 import db from '../service/db';
 import { Student } from '../interface';
 import * as bus from '../service/bus';
+import { Value } from '../typeutils';
 
 const coll = db.collection('stu.info');
 
@@ -17,14 +18,49 @@ class StudentModel {
     @ArgMethod
     static async getStuInfoById(_id: number): Promise<Student | null> {
         // if (cache.has(`${_id}`)) return cache.get(`${_id}`);
-
         const studoc = await coll.findOne({ _id });
-        console.log(_id);
-        console.log(studoc);
         if (!studoc) return null;
-
         // cache.set(`${studoc._id}`, studoc);
         return studoc;
+    }
+
+    @ArgMethod
+    static async create(uid: number, classname: string, name: string, stuid: string) {
+        try {
+            await coll.insertOne({
+                _id: uid,
+                name,
+                class: classname,
+                stuid,
+            });
+        } catch (e) {
+            logger.warn('%o', e);
+        }
+    }
+
+    @ArgMethod
+    static async setById(uid: number, $set?: Partial<Student>, $unset?: Value<Partial<Student>, ''>) {
+        const op: any = {};
+        if ($set && Object.keys($set).length) op.$set = $set;
+        if ($unset && Object.keys($unset).length) op.$unset = $unset;
+        console.log(op);
+        const res = await coll.findOneAndUpdate({ _id: uid }, op, { returnDocument: 'after' });
+        return res;
+    }
+
+    @ArgMethod
+    static setStuID(uid: number, stuid: string) {
+        return StudentModel.setById(uid, { stuid });
+    }
+
+    @ArgMethod
+    static setName(uid: number, name: string) {
+        return StudentModel.setById(uid, { name });
+    }
+
+    @ArgMethod
+    static setClass(uid: number, cls: string) {
+        return StudentModel.setById(uid, { class: cls });
     }
 }
 
