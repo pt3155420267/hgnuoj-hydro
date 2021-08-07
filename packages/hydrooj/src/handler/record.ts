@@ -97,15 +97,16 @@ class RecordDetailHandler extends Handler {
         if (!rdoc) throw new RecordNotFoundError(rid);
         if (rdoc.contest) {
             const tdoc = await contest.get(domainId, rdoc.contest.tid, rdoc.contest.type);
-            if (
-                (rdoc.uid !== this.user._id && !contest.canShowRecord.call(this, tdoc, true))
-                || (rdoc.uid === this.user._id && !contest.canShowSelfRecord.call(this, tdoc, true))
-            ) {
-                throw new PermissionError(rid);
-            }
+            let canView = this.user.own(tdoc);
+            canView ||= contest.canShowRecord.call(this, tdoc);
+            canView ||= contest.canShowSelfRecord.call(this, tdoc, true) && rdoc.uid === this.user._id;
+            if (!canView) throw new PermissionError(rid);
         }
         if (rdoc.uid !== this.user._id && !this.user.hasPriv(PRIV.PRIV_READ_RECORD_CODE)) {
-            if (!this.user.hasPerm(PERM.PERM_READ_RECORD_CODE)) rdoc.code = null;
+            if (!this.user.hasPerm(PERM.PERM_READ_RECORD_CODE)) {
+                rdoc.code = null;
+                rdoc.compilerTexts = [];
+            }
         }
         // eslint-disable-next-line prefer-const
         let [pdoc, udoc] = await Promise.all([
@@ -117,17 +118,9 @@ class RecordDetailHandler extends Handler {
             || !this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)
             || (!rdoc.contest && pdoc.hidden && !this.user.own(pdoc) && !this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN))
         ) {
-            pdoc = { ...problem.default, docId: pdoc?.docId || 0, pid: '*' };
+            throw new PermissionError(PERM.PERM_READ_RECORD_CODE);
         }
-        this.response.body = {
-            path: [
-                ['Hydro', 'homepage'],
-                ['record_detail', null],
-            ],
-            udoc,
-            rdoc,
-            pdoc,
-        };
+        this.response.body = { udoc, rdoc, pdoc };
         if (rdoc.contest) {
             this.response.body.tdoc = await contest.get(domainId, rdoc.contest.tid, rdoc.contest.type);
         }
@@ -159,7 +152,7 @@ class RecordDetailHandler extends Handler {
             };
             const [latest] = await Promise.all([
                 record.update(domainId, rid, $set),
-                bus.emit('record/change', rdoc, $set),
+                TaskModel.deleteMany({ rid: rdoc._id }),
             ]);
             await postJudge(latest);
         }
@@ -168,7 +161,7 @@ class RecordDetailHandler extends Handler {
 }
 
 class RecordMainConnectionHandler extends ConnectionHandler {
-    dispose: bus.Disposable;
+    cleanup: bus.Disposable;
     tid: string;
     uid: number;
     pdomain: string;
@@ -188,7 +181,10 @@ class RecordMainConnectionHandler extends ConnectionHandler {
             if (pretest || contest.canShowScoreboard.call(this, tdoc, true)) this.tid = tid.toHexString();
             else throw new PermissionError(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
         }
-        if (uidOrName) {
+        if (pretest) {
+            this.pretest = true;
+            this.uid = this.user._id;
+        } else if (uidOrName) {
             let udoc = await user.getById(domainId, +uidOrName);
             if (udoc) this.uid = udoc._id;
             else {
@@ -207,20 +203,14 @@ class RecordMainConnectionHandler extends ConnectionHandler {
             } else throw new ProblemNotFoundError(domainId, pid);
         }
         if (status) this.status = status;
-        if (pretest) this.pretest = true;
-        this.dispose = bus.on('record/change', this.onRecordChange.bind(this));
+        this.cleanup = bus.on('record/change', this.onRecordChange.bind(this));
     }
 
-    async message(msg) {
-        if (msg.rids instanceof Array) {
-            const rids = msg.rids.map((id: string) => new ObjectID(id));
-            const rdocs = await record.getMulti(this.domainId, { _id: { $in: rids } }).toArray();
-            for (const rdoc of rdocs) this.onRecordChange(rdoc);
-        }
-    }
-
-    async cleanup() {
-        if (this.dispose) this.dispose();
+    async message(msg: { rids: string[] }) {
+        if (!(msg.rids instanceof Array)) return;
+        const rids = msg.rids.map((id) => new ObjectID(id));
+        const rdocs = await record.getMulti(this.domainId, { _id: { $in: rids } }).project(buildProjection(record.PROJECTION_LIST)).toArray();
+        for (const rdoc of rdocs) this.onRecordChange(rdoc);
     }
 
     async onRecordChange(rdoc: RecordDoc) {
@@ -234,7 +224,7 @@ class RecordMainConnectionHandler extends ConnectionHandler {
             user.getById(this.domainId, rdoc.uid),
             problem.get(rdoc.pdomain, rdoc.pid),
         ]);
-        const tdoc = this.tid ? await contest.get(this.domainId, new ObjectID(this.tid)) : null;
+        const tdoc = this.tid ? await contest.get(this.domainId, new ObjectID(this.tid), -1) : null;
         if (pdoc && !rdoc.contest) {
             if (pdoc.hidden && !this.user.own(pdoc) && !this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN)) pdoc = null;
             if (!this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) pdoc = null;
@@ -251,7 +241,7 @@ class RecordMainConnectionHandler extends ConnectionHandler {
 }
 
 class RecordDetailConnectionHandler extends ConnectionHandler {
-    dispose: bus.Disposable;
+    cleanup: bus.Disposable;
     rid: string;
 
     @param('rid', Types.ObjectID)
@@ -259,10 +249,25 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
         const rdoc = await record.get(domainId, rid);
         if (rdoc.contest && rdoc.input === undefined) {
             const tdoc = await contest.get(domainId, rdoc.contest.tid, -1);
-            if (!contest.canShowRecord.call(this, tdoc)) throw new PermissionError(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
+            let canView = this.user.own(tdoc);
+            canView ||= contest.canShowRecord.call(this, tdoc);
+            canView ||= this.user._id === rdoc.uid && contest.canShowSelfRecord.call(this, tdoc);
+            if (!canView) throw new PermissionError(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
         }
+        if (rdoc.uid !== this.user._id && !this.user.hasPriv(PRIV.PRIV_READ_RECORD_CODE)) {
+            if (!this.user.hasPerm(PERM.PERM_READ_RECORD_CODE)) {
+                rdoc.code = null;
+                rdoc.compilerTexts = [];
+            }
+        }
+        const pdoc = await problem.get(rdoc.pdomain, rdoc.pid);
+        let canView = this.user.own(pdoc);
+        canView ||= !pdoc.hidden && this.user.hasPerm(PERM.PERM_VIEW_PROBLEM);
+        canView ||= this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN);
+        canView ||= !!rdoc.contest || this.user._id === rdoc.uid;
+        if (!canView) throw new PermissionError(PERM.PERM_READ_RECORD_CODE);
         this.rid = rid.toString();
-        this.dispose = bus.on('record/change', this.onRecordChange.bind(this));
+        this.cleanup = bus.on('record/change', this.onRecordChange.bind(this));
         this.onRecordChange(rdoc);
     }
 
@@ -275,10 +280,6 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
             status_html: await this.renderHTML('record_detail_status.html', { rdoc }),
             summary_html: await this.renderHTML('record_detail_summary.html', { rdoc }),
         });
-    }
-
-    async cleanup() {
-        if (this.dispose) this.dispose();
     }
 }
 

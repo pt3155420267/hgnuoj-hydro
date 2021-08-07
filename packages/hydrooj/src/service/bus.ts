@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import cluster from 'cluster';
+import cluster, { Worker } from 'cluster';
 import serialize from 'serialize-javascript';
 import cac from 'cac';
 import type {
@@ -184,7 +184,7 @@ export async function bail<K extends keyof EventMap>(name: K, ...args: Parameter
     return null;
 }
 
-export function boardcast<K extends keyof EventMap>(event: K, ...payload: Parameters<EventMap[K]>) {
+export function broadcast<K extends keyof EventMap>(event: K, ...payload: Parameters<EventMap[K]>) {
     // Process forked by pm2 would also have process.send
     if (process.send && !cluster.isMaster) {
         process.send({
@@ -195,7 +195,7 @@ export function boardcast<K extends keyof EventMap>(event: K, ...payload: Parame
     } else parallel(event, ...payload);
 }
 
-async function messageHandler(worker: cluster.Worker, msg: any) {
+async function messageHandler(worker: Worker, msg: any) {
     if (!msg) msg = worker;
     // eslint-disable-next-line no-eval
     if (typeof msg.payload === 'string') msg.payload = eval(msg.payload);
@@ -217,5 +217,5 @@ process.on('message', messageHandler);
 cluster.on('message', messageHandler);
 
 global.Hydro.service.bus = {
-    addListener, bail, boardcast, emit, on, off, once, parallel, prependListener, removeListener, serial,
+    addListener, bail, broadcast, emit, on, off, once, parallel, prependListener, removeListener, serial,
 };
