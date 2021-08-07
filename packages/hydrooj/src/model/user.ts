@@ -18,6 +18,7 @@ import db from '../service/db';
 import * as bus from '../service/bus';
 
 const coll: Collection<Udoc> = db.collection('user');
+
 const logger = new Logger('model/user');
 const cache = new LRU<string, User>({ max: 500, maxAge: 300 * 1000 });
 

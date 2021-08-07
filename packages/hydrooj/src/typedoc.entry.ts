@@ -18,6 +18,7 @@ import message from './model/message';
 import * as discussion from './model/discussion';
 import * as contest from './model/contest';
 import * as opcount from './model/opcount';
+import * as stuinfo from './model/stuinfo';
 
 export const Interface = interfaces;
 
@@ -41,4 +42,5 @@ export namespace Model {
     export const Oauth = oauth;
     export const Discussion = discussion;
     export const Message = message;
+    export const StuInfo = stuinfo;
 }

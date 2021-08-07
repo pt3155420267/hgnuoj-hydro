@@ -870,5 +870,6 @@ Your permission: 您的权限
 Your role: 您的角色
 
 # HGNUOJ Added
-StuNumber: 学号
-ClassName: 专业班级
+Stu_ID: 学号
+Stu_ClassName: 专业班级
+Stu_RealName: 姓名

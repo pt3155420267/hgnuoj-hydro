@@ -66,7 +66,7 @@ All Submissions: 所有递交
 All Training Plans: 所有训练计划
 All: 全部
 Allow builtin-login: 启用内置登录
-Allow using gravatar:email qq:id github:name format.: 允许使用 gravatar:email，qq:id，github:name 格式。
+Allow using gravatar:email qq:id github:name format.: 允许使用 gravatar:email，qq:id 格式。
 Always granted all privileges: 总是拥有所有权限
 An error has occurred.: 发生了一个错误。
 An example of dataset: 测试数据集的一个例子

@@ -20,7 +20,7 @@ export const builtinModel = [
     'builtin', 'document', 'domain', 'blacklist', 'opcount',
     'setting', 'token', 'user', 'storage', 'problem',
     'record', 'contest', 'message', 'solution', 'training',
-    'discussion', 'system', 'oplog',
+    'discussion', 'system', 'oplog', 'stuinfo',
 ];
 
 export const builtinHandler = [

@@ -1,8 +1,13 @@
 import moment from 'moment-timezone';
 import {
-    UserAlreadyExistError, InvalidTokenError, VerifyPasswordError,
-    UserNotFoundError, SystemError, BlacklistedError,
-    UserFacingError, LoginError,
+    UserAlreadyExistError,
+    InvalidTokenError,
+    VerifyPasswordError,
+    UserNotFoundError,
+    SystemError,
+    BlacklistedError,
+    UserFacingError,
+    LoginError,
 } from '../error';
 import { User } from '../interface';
 import {
@@ -21,6 +26,7 @@ import { isEmail, isPassword, isUname } from '../lib/validator';
 import { sendMail } from '../lib/mail';
 import paginate from '../lib/paginate';
 import avatar from '../lib/avatar';
+import student from '../model/stuinfo';
 
 class UserLoginHandler extends Handler {
     noCheckPermView = true;
@@ -33,17 +39,27 @@ class UserLoginHandler extends Handler {
     @param('uname', Types.String)
     @param('password', Types.String)
     @param('rememberme', Types.Boolean)
-    async post(domainId: string, uname: string, password: string, rememberme = false) {
+    async post(
+        domainId: string,
+        uname: string,
+        password: string,
+        rememberme = false,
+    ) {
         if (!system.get('server.login')) throw new LoginError('Builtin login disabled.');
         const udoc = await user.getByUname(domainId, uname);
         if (!udoc) throw new UserNotFoundError(uname);
         udoc.checkPassword(password);
-        await user.setById(udoc._id, { loginat: new Date(), loginip: this.request.ip });
+        await user.setById(udoc._id, {
+            loginat: new Date(),
+            loginip: this.request.ip,
+        });
         if (udoc.priv === PRIV.PRIV_NONE) throw new BlacklistedError(uname);
         this.session.uid = udoc._id;
         this.session.scope = PERM.PERM_ALL.toString();
         this.session.save = rememberme;
-        this.response.redirect = (this.request.referer || '/login').endsWith('/login')
+        this.response.redirect = (this.request.referer || '/login').endsWith(
+            '/login',
+        )
             ? this.url('homepage')
             : this.request.referer;
     }
@@ -86,12 +102,20 @@ export class UserRegisterHandler extends Handler {
                 const m = await this.renderHTML('user_register_mail.html', {
                     path: `register/${t[0]}`,
                     url_prefix: this.domain.host
-                        ? `${this.domain.host instanceof Array ? this.domain.host[0] : this.domain.host}/`
+                        ? `${
+                            this.domain.host instanceof Array
+                                ? this.domain.host[0]
+                                : this.domain.host
+                        }/`
                         : system.get('server.url'),
                 });
                 await sendMail(mail, 'Sign Up', 'user_register_mail', m);
                 this.response.template = 'user_register_mail_sent.html';
-            } else this.response.redirect = this.url('user_register_with_code', { code: t[0] });
+            } else {
+                this.response.redirect = this.url('user_register_with_code', {
+                    code: t[0],
+                });
+            }
         } else if (phoneNumber) {
             if (!global.Hydro.lib.sendSms) throw new SystemError('Cannot send sms');
             await this.limitRate('send_sms', 60, 3);
@@ -121,20 +145,31 @@ class UserRegisterWithCodeHandler extends Handler {
     @param('uname', Types.String, isUname)
     @param('code', Types.String)
     async post(
-        domainId: string, password: string, verify: string,
-        uname: string, code: string,
+        domainId: string,
+        password: string,
+        verify: string,
+        uname: string,
+        code: string,
     ) {
         const tdoc = await token.get(code, token.TYPE_REGISTRATION);
         if (!tdoc || (!tdoc.mail && !tdoc.phone)) throw new InvalidTokenError(token.TYPE_REGISTRATION, code);
         if (password !== verify) throw new VerifyPasswordError();
         if (tdoc.phone) tdoc.mail = `${tdoc.phone}@hydro.local`;
-        const uid = await user.create(tdoc.mail, uname, password, undefined, this.request.ip);
+        const uid = await user.create(
+            tdoc.mail,
+            uname,
+            password,
+            undefined,
+            this.request.ip,
+        );
         await token.del(code, token.TYPE_REGISTRATION);
         const [id, domain] = tdoc.mail.split('@');
         if (domain === 'qq.com' && !Number.isNaN(+id)) await user.setById(uid, { avatar: `qq:${id}` });
         this.session.uid = uid;
         this.session.scpoe = PERM.PERM_ALL.toString();
-        this.response.redirect = this.url('home_settings', { category: 'preference' });
+        this.response.redirect = this.url('home_settings', {
+            category: 'preference',
+        });
     }
 }
 
@@ -156,7 +191,11 @@ class UserLostPassHandler extends Handler {
         const m = await this.renderHTML('user_lostpass_mail.html', {
             url: `lostpass/${tid}`,
             url_prefix: this.domain.host
-                ? `${this.domain.host instanceof Array ? this.domain.host[0] : this.domain.host}/`
+                ? `${
+                    this.domain.host instanceof Array
+                        ? this.domain.host[0]
+                        : this.domain.host
+                }/`
                 : system.get('server.url'),
             uname: udoc.uname,
         });
@@ -177,7 +216,12 @@ class UserLostPassWithCodeHandler extends Handler {
     @param('code', Types.String)
     @param('password', Types.String, isPassword)
     @param('verifyPassword', Types.String)
-    async post(domainId: string, code: string, password: string, verifyPassword: string) {
+    async post(
+        domainId: string,
+        code: string,
+        password: string,
+        verifyPassword: string,
+    ) {
         const tdoc = await token.get(code, token.TYPE_LOSTPASS);
         if (!tdoc) throw new InvalidTokenError(token.TYPE_LOSTPASS, code);
         if (password !== verifyPassword) throw new VerifyPasswordError();
@@ -190,6 +234,7 @@ class UserLostPassWithCodeHandler extends Handler {
 class UserDetailHandler extends Handler {
     @param('uid', Types.Int)
     async get(domainId: string, uid: number) {
+        console.log(`user:${uid}`);
         if (uid === 0) throw new UserNotFoundError(0);
         const isSelfProfile = this.user._id === uid;
         const udoc = await user.getById(domainId, uid);
@@ -198,21 +243,23 @@ class UserDetailHandler extends Handler {
             token.getMostRecentSessionByUid(uid),
             record.getByUid(domainId, uid, 30),
             this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)
-                ? paginate(
-                    problem.getMulti(domainId, { owner: uid }),
-                    1,
-                    100,
-                )
-                : [[], 0, 0] as [ProblemDoc[], number, number],
+                ? paginate(problem.getMulti(domainId, { owner: uid }), 1, 100)
+                : ([[], 0, 0] as [ProblemDoc[], number, number]),
         ]);
         const pdict = this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)
             ? await problem.getList(
-                domainId, rdocs.map((rdoc) => rdoc.pid),
-                this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id, false,
-            )
-            : Object.fromEntries(rdocs.map(
-                (rdoc) => [rdoc.pid, { ...problem.default, pid: rdoc.pid }],
-            ));
+                domainId,
+                rdocs.map((rdoc) => rdoc.pid),
+                this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN)
+						|| this.user._id,
+                false,
+			  )
+            : Object.fromEntries(
+                rdocs.map((rdoc) => [
+                    rdoc.pid,
+                    { ...problem.default, pid: rdoc.pid },
+                ]),
+            );
         // Remove sensitive data
         if (!isSelfProfile && sdoc) {
             sdoc.createIp = '';
@@ -225,7 +272,14 @@ class UserDetailHandler extends Handler {
         ];
         this.response.template = 'user_detail.html';
         this.response.body = {
-            isSelfProfile, udoc, sdoc, rdocs, pdocs, pcount, pdict, path,
+            isSelfProfile,
+            udoc,
+            sdoc,
+            rdocs,
+            pdocs,
+            pcount,
+            pdict,
+            path,
         };
         this.extraTitleContent = udoc.uname;
     }
@@ -259,7 +313,7 @@ class UserSearchHandler extends Handler {
                 if (udoc) udocs.push(udoc);
             }
         }
-        if (!exactMatch) udocs.push(...await user.getPrefixList(domainId, q, 20));
+        if (!exactMatch) udocs.push(...(await user.getPrefixList(domainId, q, 20)));
         for (const i in udocs) {
             udocs[i].avatarUrl = avatar(udocs[i].avatar);
         }
@@ -277,8 +331,12 @@ class OauthHandler extends Handler {
 class OauthCallbackHandler extends Handler {
     async get(args: any) {
         let r;
-        if (global.Hydro.lib[`oauth_${args.type}`]) r = await global.Hydro.lib[`oauth_${args.type}`].callback.call(this, args);
-        else throw new UserFacingError('Oauth type');
+        if (global.Hydro.lib[`oauth_${args.type}`]) {
+            r = await global.Hydro.lib[`oauth_${args.type}`].callback.call(
+                this,
+                args,
+            );
+        } else throw new UserFacingError('Oauth type');
         const uid = await oauth.get(r._id);
         if (uid) {
             this.session.uid = uid;
@@ -297,8 +355,11 @@ class OauthCallbackHandler extends Handler {
                 }
             }
             const _id = await user.create(
-                r.email, username, String.random(32),
-                undefined, this.request.ip,
+                r.email,
+                username,
+                String.random(32),
+                undefined,
+                this.request.ip,
             );
             const $set: any = {
                 oauth: args.type,
@@ -315,19 +376,61 @@ class OauthCallbackHandler extends Handler {
     }
 }
 
+// HGNUOJ 学生信息
+class StudentInfoHandler extends Handler {
+    @param('uid', Types.Int)
+    async get(domainId: string, uid: number) {
+        // todo
+        console.log(uid);
+        const res = await student.getStuInfoById(uid);
+        console.log(res);
+        this.response.body = res;
+    }
+}
+
 export async function apply() {
     Route('user_login', '/login', UserLoginHandler);
     Route('user_oauth', '/oauth/:type', OauthHandler);
     Route('user_oauth_callback', '/oauth/:type/callback', OauthCallbackHandler);
-    Route('user_register', '/register', UserRegisterHandler, PRIV.PRIV_REGISTER_USER);
-    Route('user_register_without_code', '/register/code', UserRegisterWithCodeHandler, PRIV.PRIV_REGISTER_USER);
-    Route('user_register_with_code', '/register/:code', UserRegisterWithCodeHandler, PRIV.PRIV_REGISTER_USER);
+    Route(
+        'user_register',
+        '/register',
+        UserRegisterHandler,
+        PRIV.PRIV_REGISTER_USER,
+    );
+    Route(
+        'user_register_without_code',
+        '/register/code',
+        UserRegisterWithCodeHandler,
+        PRIV.PRIV_REGISTER_USER,
+    );
+    Route(
+        'user_register_with_code',
+        '/register/:code',
+        UserRegisterWithCodeHandler,
+        PRIV.PRIV_REGISTER_USER,
+    );
     Route('user_logout', '/logout', UserLogoutHandler, PRIV.PRIV_USER_PROFILE);
     Route('user_lostpass', '/lostpass', UserLostPassHandler);
-    Route('user_lostpass_with_code', '/lostpass/:code', UserLostPassWithCodeHandler);
-    Route('user_search', '/user/search', UserSearchHandler, PRIV.PRIV_USER_PROFILE);
-    Route('user_delete', '/user/delete', UserDeleteHandler, PRIV.PRIV_USER_PROFILE);
+    Route(
+        'user_lostpass_with_code',
+        '/lostpass/:code',
+        UserLostPassWithCodeHandler,
+    );
+    Route(
+        'user_search',
+        '/user/search',
+        UserSearchHandler,
+        PRIV.PRIV_USER_PROFILE,
+    );
+    Route(
+        'user_delete',
+        '/user/delete',
+        UserDeleteHandler,
+        PRIV.PRIV_USER_PROFILE,
+    );
     Route('user_detail', '/user/:uid', UserDetailHandler);
+    Route('student_detail', '/student/:uid', StudentInfoHandler);
 }
 
 global.Hydro.handler.user = apply;

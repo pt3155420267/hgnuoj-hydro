@@ -102,6 +102,14 @@ export interface User extends Record<string, any> {
     checkPassword: (password: string) => void,
 }
 
+/* HGNUOJ 学生信息 */
+export interface Student extends Dictionary<any> {
+    _id: number,
+    name: string,
+    stuid: string,
+    class: string
+}
+
 export type Udict = NumericDictionary<User>;
 
 export interface FileInfo {
@@ -538,6 +546,7 @@ export interface Collections {
     'document': any;
     'problem': ProblemDoc;
     'user': Udoc;
+    'stu.info': Student;
     'check': any;
     'message': MessageDoc;
     'token': TokenDoc;
@@ -554,6 +563,7 @@ export interface Collections {
 }
 
 export interface Model {
+    student: typeof import('./model/stuinfo').default;
     blacklist: typeof import('./model/blacklist').default,
     builtin: typeof import('./model/builtin'),
     contest: typeof import('./model/contest'),
