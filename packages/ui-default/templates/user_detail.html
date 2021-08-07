@@ -22,14 +22,11 @@
                   {{ udoc['uname'] }}
                   <small>({{ _('UID') }}：{{ udoc['_id'] }})</small>
                 </h1>
-                {% if sdoc and studoc %}
+                {% if studoc %}
                   <p>
                     <p>
                       <span>
-                        {{ _('Stu_RealName') }}：
-                    </span>
-                      <span>
-                        {{studoc['name']}}
+                        {{ _('Stu_RealName') }}：{{studoc['name']}}
                       </span>
                     </p>
                     {% if isSelfProfile %}

@@ -70,7 +70,8 @@ Nav('homepage', {}, 'homepage');
 Nav('problem_main', {}, 'problem', PERM.PERM_VIEW_PROBLEM);
 Nav('training_main', {}, 'training', PERM.PERM_VIEW_TRAINING);
 Nav('homework_main', {}, 'homework', PERM.PERM_VIEW_HOMEWORK);
-Nav('discussion_main', {}, 'discussion', PERM.PERM_VIEW_DISCUSSION);
+// 禁用讨论
+// Nav('discussion_main', {}, 'discussion', PERM.PERM_VIEW_DISCUSSION);
 Nav('contest_main', {}, 'contest', PERM.PERM_VIEW_CONTEST);
 Nav('record_main', (handler) => (handler.user.hasPriv(PRIV.PRIV_USER_PROFILE) ? { query: { uidOrName: handler.user._id } } : {}), 'record');
 Nav('ranking', {}, 'ranking', PERM.PERM_VIEW_RANKING);
