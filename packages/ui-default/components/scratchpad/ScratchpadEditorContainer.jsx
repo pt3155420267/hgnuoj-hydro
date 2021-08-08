@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import monaco from 'vj/components/monaco/index';
+import monaco, { registerAction } from 'vj/components/monaco/index';
 
 const mapStateToProps = (state) => ({
   value: state.editor.code,
@@ -29,7 +29,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class MonacoEditor e
     const { language, theme } = this.props;
     if (this.props.language === 'blockly') {
       if (!this.blockly) {
-        import('./blockly.jsx').then(({ default: Blockly }) => {
+        import('./blockly').then(({ default: Blockly }) => {
           if (!this.blockly) return;
           Blockly.inject(this.containerElement, {
           });
@@ -51,6 +51,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class MonacoEditor e
       const fontSize = localStorage.getItem('scratchpad.editor.fontSize');
       if (fontSize && !Number.isNaN(+fontSize)) config.fontSize = +fontSize;
       this.editor = monaco.editor.create(this.containerElement, config);
+      registerAction(this.editor, this.model);
       this.disposable.push(
         this.editor.onDidChangeModelContent((event) => {
           if (!this.__prevent_trigger_change_event) {
@@ -69,7 +70,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class MonacoEditor e
     if (this.props.language === 'blockly') {
       if (!this.blockly) {
         this.editor.dispose();
-        import('./blockly.jsx').then(({ default: Blockly, toolbox }) => {
+        import('./blockly').then(({ default: Blockly, toolbox }) => {
           if (!this.blockly) return;
           Blockly.inject(this.containerElement, {
             toolbox,

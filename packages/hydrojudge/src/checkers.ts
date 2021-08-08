@@ -1,5 +1,4 @@
 /* eslint-disable no-template-curly-in-string */
-import fs from 'fs-extra';
 import * as STATUS from './status';
 import { parse } from './testlib';
 import { run } from './sandbox';
@@ -93,11 +92,10 @@ const checkers: Record<string, Checker> = {
             },
         });
         const status = code ? STATUS.STATUS_WRONG_ANSWER : STATUS.STATUS_ACCEPTED;
-        const message = (await fs.readFile(stdout)).toString();
         return {
             status,
             score: status === STATUS.STATUS_ACCEPTED ? config.score : 0,
-            message,
+            message: stdout,
         };
     },
 
