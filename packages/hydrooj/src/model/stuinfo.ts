@@ -43,6 +43,7 @@ class StudentModel {
         const op: any = {};
         if ($set && Object.keys($set).length) op.$set = $set;
         if ($unset && Object.keys($unset).length) op.$unset = $unset;
+        if (Object.getOwnPropertyNames(op).length === 0) return null;
         const res = await coll.findOneAndUpdate({ _id: uid }, op, { returnDocument: 'after' });
         return res;
     }

@@ -14,7 +14,7 @@
 .section
   background: $section-bg-color
   box-shadow: $section-shadow
-  transition: transform .75s, opacity .75s
+  transition: transform .5s, opacity .5s
   transition-timing-function: ease-out-cubic
 
   +mobile()
@@ -24,7 +24,7 @@
 
 .hasjs .section
   +above(rupture.mobile-cutoff)
-    transform: translateY(rem(30px))
+    transform: translateY(rem(100px)) scale(1.2)
     opacity: 0
 
     &.visible
