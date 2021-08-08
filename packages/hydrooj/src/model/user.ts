@@ -19,13 +19,17 @@ import * as bus from '../service/bus';
 import StudentModel from './stuinfo';
 
 const coll: Collection<Udoc> = db.collection('user');
-
 const logger = new Logger('model/user');
 const cache = new LRU<string, User>({ max: 500, maxAge: 300 * 1000 });
 
 export function deleteUserCache(udoc: User | Udoc | string | undefined | null, receiver = false) {
     if (!udoc) return;
-    if (!receiver) bus.broadcast('user/delcache', JSON.stringify(udoc));
+    if (!receiver) {
+        bus.broadcast(
+            'user/delcache',
+            JSON.stringify(typeof udoc === 'string' ? udoc : pick(udoc, ['uname', 'mail', '_id'])),
+        );
+    }
     if (typeof udoc === 'string') {
         for (const key of cache.keys().filter((k) => k.endsWith(`/${udoc}`))) {
             cache.del(key);
