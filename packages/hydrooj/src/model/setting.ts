@@ -122,6 +122,12 @@ PreferenceSetting(
 );
 
 AccountSetting(
+    Setting('setting_student', 'stuid', '', 'text', 'Stu_ID',
+        ''),
+    Setting('setting_student', 'name', '', 'text', 'Stu_RealName',
+        ''),
+    Setting('setting_student', 'class', null, 'text', 'Stu_ClassName',
+        ''),
     Setting('setting_info', 'avatar', '', 'text', 'Avatar',
         'Allow using gravatar:email qq:id github:name format.'),
     Setting('setting_info', 'qq', null, 'text', 'QQ'),

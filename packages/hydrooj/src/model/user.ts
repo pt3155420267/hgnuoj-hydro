@@ -16,6 +16,7 @@ import { Logger } from '../logger';
 import pwhash from '../lib/hash.hydro';
 import db from '../service/db';
 import * as bus from '../service/bus';
+import StudentModel from './stuinfo';
 
 const coll: Collection<Udoc> = db.collection('user');
 
@@ -149,6 +150,10 @@ class UserModel {
         if (cache.has(`${_id}/${domainId}`)) return cache.get(`${_id}/${domainId}`);
         const udoc = await coll.findOne({ _id });
         if (!udoc) return null;
+        const studoc = await StudentModel.getStuInfoById(_id);
+        for (const key in studoc) {
+            udoc[key] = studoc[key];
+        }
         const dudoc = await domain.getDomainUser(domainId, udoc);
         if (typeof scope === 'string') scope = BigInt(scope);
         const res = await new User(udoc, dudoc, scope).init();
@@ -199,6 +204,15 @@ class UserModel {
         const op: any = {};
         if ($set && Object.keys($set).length) op.$set = $set;
         if ($unset && Object.keys($unset).length) op.$unset = $unset;
+        const stuinfo = ['stuid', 'name', 'class'];
+        const studoc = { };
+        stuinfo.forEach((element) => {
+            if (op.$set[element]) {
+                studoc[element] = op.$set[element];
+                delete op.$set[element];
+            }
+        });
+        StudentModel.setById(uid, studoc);
         const res = await coll.findOneAndUpdate({ _id: uid }, op, { returnDocument: 'after' });
         deleteUserCache(res.value);
         return res;
