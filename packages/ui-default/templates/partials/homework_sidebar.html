@@ -119,23 +119,84 @@
           {{ _('Help') }}
         </a>
       </li>
-      <li class="menu__seperator"></li>
-    </ol>
-  </div>
-  <div class="section__body typo">
-    <dl class="large horizontal">
-      <dt>{{ _('Status') }}</dt>
-      <dd>
-        <span class="homework-status--text {{ model.contest.getStatus(tdoc) }}">{{ _(model.contest.statusText(tdoc)) }}</span></dd>
-      <dt>{{ _('Problem') }}</dt>
-      <dd>{{ tdoc['pids']|length }}</dd>
-      <dt>{{ _('Open Since') }}</dt>
-      <dd>{{ homework.render_time(tdoc['beginAt']) }}</dd>
-      <dt>{{ _('Deadline') }}</dt>
-      <dd>{{ homework.render_time(tdoc['penaltySince']) }}</dd>
-      <dt>{{ _('Can be Extended For') }}</dt>
-      <dd>{{ homework.render_extension(tdoc) }}
-        {{ _('hour(s)') }}</dd>
-    </dl>
-  </div>
+    {% endif %}
+    {% if model
+      .contest
+      .canShowScoreboard
+      .call(handler, tdoc, false) %}
+      <li class="menu__item">
+        <a class="menu__link" href="{{ url('homework_scoreboard', tid=tdoc.docId) }}">
+          <span class="icon icon-statistics"></span>
+          {{ _('Scoreboard') }}
+        </a>
+      </li>
+    {% elif model
+        .contest
+        .canViewHiddenScoreboard(handler, tdoc) %}
+      <li class="menu__item">
+        <a class="menu__link" href="{{ url('homework_scoreboard', tid=tdoc.docId) }}">
+          <span class="icon icon-statistics"></span>
+          {{ _('Scoreboard (Hidden)') }}
+        </a>
+      </li>
+    {% endif %}
+    {% if handler
+      .user
+      .own(tdoc)or handler
+      .user
+      .hasPerm(perm.PERM_EDIT_HOMEWORK) %}
+      <li class="menu__item">
+        <a class="menu__link" href="{{ url('homework_edit', tid=tdoc.docId) }}">
+          <span class="icon icon-edit"></span>
+          {{ _('Edit Homework') }}
+        </a>
+      </li>
+    {% endif %}
+    {% if handler
+      .user
+      .own(tdoc)or handler
+      .user
+      .hasPriv(PRIV.PRIV_READ_RECORD_CODE)or handler
+      .user
+      .hasPerm(perm.PERM_READ_RECORD_CODE) %}
+      <li class="menu__item">
+        <a class="menu__link" href="{{ url('homework_code', tid=tdoc.docId) }}" data-no-instant>
+          <span class="icon icon-download"></span>
+          {{ _('Export All Code') }}
+        </a>
+      </li>
+    {% endif %}
+    {% if attended %}
+      <li class="menu__item">
+        <a class="menu__link" href="{{ url('record_main', query={uidOrName:handler.user._id, tid:tdoc.docId}) }}">
+          <span class="icon icon-flag"></span>
+          {{ _('My Recent Submissions') }}
+        </a>
+      </li>
+    {% endif %}
+    <li class="menu__item">
+      <a class="menu__link" href="{{ url('wiki', page='help', anchor='homework') }}">
+        <span class="icon icon-help"></span>
+        {{ _('Help') }}
+      </a>
+    </li>
+    <li class="menu__seperator"></li>
+  </ol>
+</div>
+<div class="section__body typo">
+  <dl class="large horizontal">
+    <dt>{{ _('Status') }}</dt>
+    <dd>
+      <span class="homework-status--text {{ model.contest.getStatus(tdoc) }}">{{ _(model.contest.statusText(tdoc)) }}</span></dd>
+    <dt>{{ _('Problem') }}</dt>
+    <dd>{{ tdoc['pids']|length }}</dd>
+    <dt>{{ _('Open Since') }}</dt>
+    <dd>{{ homework.render_time(tdoc['beginAt']) }}</dd>
+    <dt>{{ _('Deadline') }}</dt>
+    <dd>{{ homework.render_time(tdoc['penaltySince']) }}</dd>
+    <dt>{{ _('Can be Extended For') }}</dt>
+    <dd>{{ homework.render_extension(tdoc) }}
+      {{ _('hour(s)') }}</dd>
+  </dl>
+</div>
 </div>
