@@ -876,3 +876,4 @@ setting_student: 学生信息
 Stu_ID: 学号
 Stu_ClassName: 专业班级
 Stu_RealName: 姓名
+reg_stuwarn: 请使用真实学生信息填写！

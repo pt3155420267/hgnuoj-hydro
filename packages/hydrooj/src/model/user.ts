@@ -1,6 +1,6 @@
 import { Collection } from 'mongodb';
 import LRU from 'lru-cache';
-import { escapeRegExp } from 'lodash';
+import { escapeRegExp, pick } from 'lodash';
 import * as system from './system';
 import token from './token';
 import * as setting from './setting';
@@ -219,6 +219,11 @@ class UserModel {
                 delete op.$set[element];
             }
         });
+        if (!(await StudentModel.getStuInfoById(uid))) await StudentModel.create(uid);
+        if (studoc['stuid']) {
+            const stu = await StudentModel.getStuInfoByStuId(studoc['stuid']);
+            if (stu && stu._id !== uid) throw new UserAlreadyExistError(studoc['stuid']);
+        }
         StudentModel.setById(uid, studoc);
         const res = await coll.findOneAndUpdate({ _id: uid }, op, { returnDocument: 'after' });
         deleteUserCache(res.value);

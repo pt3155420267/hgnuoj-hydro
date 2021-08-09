@@ -46,8 +46,10 @@ class UserLoginHandler extends Handler {
         rememberme = false,
     ) {
         if (!system.get('server.login')) throw new LoginError('Builtin login disabled.');
-        const udoc = await user.getByUname(domainId, uname);
-        if (!udoc) throw new UserNotFoundError(uname);
+        let udoc = await user.getByUname(domainId, uname);
+        const studoc = await student.getStuInfoByStuId(uname);
+        if (!udoc && !studoc) throw new UserNotFoundError(uname);
+        if (!udoc) udoc = await user.getById('system', studoc._id);
         udoc.checkPassword(password);
         await user.setById(udoc._id, {
             loginat: new Date(),
@@ -171,6 +173,7 @@ class UserRegisterWithCodeHandler extends Handler {
             this.request.ip,
         );
         // 插入学生信息
+        if (await student.getStuInfoByStuId(stuid)) throw new UserAlreadyExistError(stuid);
         await student.create(uid, stuclass, stuname, stuid);
         await token.del(code, token.TYPE_REGISTRATION);
         const [id, domain] = tdoc.mail.split('@');

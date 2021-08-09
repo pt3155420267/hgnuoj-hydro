@@ -25,7 +25,16 @@ class StudentModel {
     }
 
     @ArgMethod
-    static async create(uid: number, classname: string, name: string, stuid: string) {
+    static async getStuInfoByStuId(stuid: string): Promise<Student | null> {
+        // if (cache.has(`${_id}`)) return cache.get(`${_id}`);
+        const studoc = await coll.findOne({ stuid });
+        if (!studoc) return null;
+        // cache.set(`${studoc._id}`, studoc);
+        return studoc;
+    }
+
+    @ArgMethod
+    static async create(uid: number, classname?: string, name?: string, stuid?: string) {
         try {
             await coll.insertOne({
                 _id: uid,
