@@ -44,6 +44,7 @@
                       <td class="col--{{ rows[0][loop.index0]['type'] }}"{% if column.style %} style="{{ column.style }}"{% endif %}>
                         {% if column.type == 'user' %}
                           {{ user.render_inline(udict[column.raw], badge=false) }}
+                          {# {{ user.render_class(udict[column.raw]) }} #}
                         {% elif column.type == 'record' and column.raw %}
                           <a href="{{ url('record_detail', rid=column.raw) }}">
                             <span style="font-weight:bold;color:{{ utils.status.getScoreColor(column.score|default(column.value)) }}">{{ column.value|replaceBr|safe }}</span>

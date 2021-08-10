@@ -162,108 +162,107 @@
           {{ _('Help') }}
         </a>
       </li>
-    {% endif %}
-    {% if model
-      .contest
-      .canShowScoreboard
-      .call(handler, tdoc, False) %}
-      <li class="menu__item">
-        <a class="menu__link" href="{{ url('contest_scoreboard', tid=tdoc.docId) }}">
-          <span class="icon icon-statistics"></span>
-          {{ _('Scoreboard') }}
-        </a>
-      </li>
-    {% elif model
-        .contest
-        .canViewHiddenScoreboard
-        .call(handler, tdoc) %}
-      <li class="menu__item">
-        <a class="menu__link" href="{{ url('contest_scoreboard', tid=tdoc.docId) }}">
-          <span class="icon icon-statistics"></span>
-          {{ _('Scoreboard (Hidden)') }}
-        </a>
-      </li>
-    {% endif %}
-    {% if handler
-      .user
-      .own(tdoc)or handler
-      .user
-      .hasPerm(perm.PERM_EDIT_CONTEST) %}
-      <li class="menu__item">
-        <a class="menu__link" href="{{ url('contest_edit', tid=tdoc.docId) }}">
-          <span class="icon icon-edit"></span>
-          {{ _('Edit Contest') }}
-        </a>
-      </li>
-    {% endif %}
-    {% if handler
-      .user
-      .own(tdoc)or handler
-      .user
-      .hasPriv(PRIV.PRIV_READ_RECORD_CODE)or handler
-      .user
-      .hasPerm(perm.PERM_READ_RECORD_CODE) %}
       {% if model
         .contest
-        .canShowRecord
-        .call(handler, tdoc, true) %}
+        .canShowScoreboard
+        .call(handler, tdoc, False) %}
         <li class="menu__item">
-          <a class="menu__link" href="{{ url('contest_code', tid=tdoc.docId) }}" data-no-instant>
-            <span class="icon icon-download"></span>
-            {{ _('Export All Code') }}
+          <a class="menu__link" href="{{ url('contest_scoreboard', tid=tdoc.docId) }}">
+            <span class="icon icon-statistics"></span>
+            {{ _('Scoreboard') }}
+          </a>
+        </li>
+      {% elif model
+          .contest
+          .canViewHiddenScoreboard
+          .call(handler, tdoc) %}
+        <li class="menu__item">
+          <a class="menu__link" href="{{ url('contest_scoreboard', tid=tdoc.docId) }}">
+            <span class="icon icon-statistics"></span>
+            {{ _('Scoreboard (Hidden)') }}
           </a>
         </li>
       {% endif %}
-    {% endif %}
-    {% if handler
-      .user
-      .hasPerm(perm.PERM_VIEW_DISCUSSION) %}
+      {% if handler
+        .user
+        .own(tdoc)or handler
+        .user
+        .hasPerm(perm.PERM_EDIT_CONTEST) %}
+        <li class="menu__item">
+          <a class="menu__link" href="{{ url('contest_edit', tid=tdoc.docId) }}">
+            <span class="icon icon-edit"></span>
+            {{ _('Edit Contest') }}
+          </a>
+        </li>
+      {% endif %}
+      {% if handler
+        .user
+        .own(tdoc)or handler
+        .user
+        .hasPriv(PRIV.PRIV_READ_RECORD_CODE)or handler
+        .user
+        .hasPerm(perm.PERM_READ_RECORD_CODE) %}
+        {% if model
+          .contest
+          .canShowRecord
+          .call(handler, tdoc, true) %}
+          <li class="menu__item">
+            <a class="menu__link" href="{{ url('contest_code', tid=tdoc.docId) }}" data-no-instant>
+              <span class="icon icon-download"></span>
+              {{ _('Export All Code') }}
+            </a>
+          </li>
+        {% endif %}
+      {% endif %}
+      {% if handler
+        .user
+        .hasPerm(perm.PERM_VIEW_DISCUSSION) %}
+        <li class="menu__item">
+          <a class="menu__link" href="{{ url('discussion_node', type='contest', name=tdoc.docId) }}">
+            <span class="icon icon-comment--text"></span>
+            {{ _('Discussion') }}
+          </a>
+        </li>
+      {% endif %}
       <li class="menu__item">
-        <a class="menu__link" href="{{ url('discussion_node', type='contest', name=tdoc.docId) }}">
-          <span class="icon icon-comment--text"></span>
-          {{ _('Discussion') }}
+        <a class="menu__link" href="{{ url('record_main', query={tid:tdoc.docId}) }}">
+          <span class="icon icon-flag"></span>
+          {{ _('All Submissions') }}
         </a>
       </li>
-    {% endif %}
-    <li class="menu__item">
-      <a class="menu__link" href="{{ url('record_main', query={tid:tdoc.docId}) }}">
-        <span class="icon icon-flag"></span>
-        {{ _('All Submissions') }}
-      </a>
-    </li>
-    <li class="menu__item">
-      <a class="menu__link" href="{{ url('wiki_help', anchor='contest') }}">
-        <span class="icon icon-help"></span>
-        {{ _('Help') }}
-      </a>
-    </li>
-    <li class="menu__seperator"></li>
-  </ol>
-</div>
-<div class="section__body typo">
-  <dl class="large horizontal">
-    <dt>{{ _('Status') }}</dt>
-    <dd>{{ _(model.contest.statusText(tdoc)) }}</dd>
-    <dt>{{ _('Rule') }}</dt>
-    <dd>{{ model.contest.RULES[tdoc.rule].TEXT }}</dd>
-    <dt>{{ _('Problem') }}</dt>
-    <dd>{{ tdoc.pids.length }}</dd>
-    <dt>{{ _('Start at') }}</dt>
-    <dd>{{ contest.render_time(tdoc.beginAt) }}</dd>
-    <dt>{{ _('End at') }}</dt>
-    <dd>{{ contest.render_time(tdoc.endAt) }}</dd>
-    <dt>{{ _('Duration') }}</dt>
-    <dd>{{ contest.render_duration(tdoc) }}
-      {{ _('hour(s)') }}</dd>
-    <dt>{{ _('Host') }}</dt>
-    <dd>{{ user.render_inline(owner_udoc, badge=false) }}</dd>
-    <dt>{{ _('Partic.') }}</dt>
-    <dd>
-      {{ tdoc['attend']|default(0) }}
-      {% if attended %}
+      <li class="menu__item">
+        <a class="menu__link" href="{{ url('wiki_help', anchor='contest') }}">
+          <span class="icon icon-help"></span>
+          {{ _('Help') }}
+        </a>
+      </li>
+      <li class="menu__seperator"></li>
+    </ol>
+  </div>
+  <div class="section__body typo">
+    <dl class="large horizontal">
+      <dt>{{ _('Status') }}</dt>
+      <dd>{{ _(model.contest.statusText(tdoc)) }}</dd>
+      <dt>{{ _('Rule') }}</dt>
+      <dd>{{ model.contest.RULES[tdoc.rule].TEXT }}</dd>
+      <dt>{{ _('Problem') }}</dt>
+      <dd>{{ tdoc.pids.length }}</dd>
+      <dt>{{ _('Start at') }}</dt>
+      <dd>{{ contest.render_time(tdoc.beginAt) }}</dd>
+      <dt>{{ _('End at') }}</dt>
+      <dd>{{ contest.render_time(tdoc.endAt) }}</dd>
+      <dt>{{ _('Duration') }}</dt>
+      <dd>{{ contest.render_duration(tdoc) }}
+        {{ _('hour(s)') }}</dd>
+      <dt>{{ _('Host') }}</dt>
+      <dd>{{ user.render_inline(owner_udoc, badge=false) }}</dd>
+      <dt>{{ _('Partic.') }}</dt>
+      <dd>
+        {{ tdoc['attend']|default(0) }}
+        {% if attended %}
         ({{ _('Attended') }})
       {% endif %}
-    </dd>
-  </dl>
-</div>
+      </dd>
+    </dl>
+  </div>
 </div>

@@ -6,7 +6,7 @@
     {% if handler
       .user
       .hasPerm(perm.PERM_REJUDGE) %}
-      <form class="form--inline" method="post" action="{{ url('record_detail', rid=rdoc._id) }}" target="no_redirect">
+      <form class="form--inline" method="post" action="{{ url('record_detail', rid=rdoc._id) }}">
         <input type="hidden" name="operation" value="rejudge">
         <input type="hidden" name="csrfToken" value="{{ handler.csrfToken }}">
         <button type="submit" class="link text-maroon lighter">
@@ -14,7 +14,6 @@
           {{ _('Rejudge') }}
         </button> |
     </form>
-      <iframe name="no_redirect" style="display:none;"></iframe>
     {% endif %}
     {% if pdoc and rdoc.contest %}
       {{ problem.render_problem_title(pdoc, tdoc=tdoc, show_tags=false, show_invisible_flag=false) }}
@@ -26,10 +25,22 @@
   </td>
   <td class="col--submit-by">
     <a href="{{ url('user_detail', uid=rdoc.uid) }}">
-      {% if udoc.displayName %}
-        {{ udoc.displayName }} ({{ udoc.uname }})
+      {% if handler
+        .user
+        .hasPriv(PRIV.PRIV_USER_PROFILE)and udoc
+        .stuid %}
+        {% if udoc.class %}
+          <span class="text-badge">{{ udoc.class }}</span>
+        {% endif %}
+        {% if udoc.name %}
+          {{ udoc.name }}
+        {% endif %}
       {% else %}
-        {{ udoc.uname }}
+        {% if udoc.displayName %}
+          {{ udoc.displayName }} ({{ udoc.uname }})
+        {% else %}
+          {{ udoc.uname }}
+        {% endif %}
       {% endif %}
     </a>
   </td>
