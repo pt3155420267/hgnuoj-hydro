@@ -8,7 +8,7 @@
         {% if handler
           .user
           .hasPriv(PRIV.PRIV_USER_PROFILE) %}
-          {% if udoc.stuid %}
+          {% if udoc.stuid and udoc.name and udoc.class %}
             <span class="text-badge">{{ udoc.class }}</span>
             <span>{{ udoc.name }}</span>
           {% else %}
@@ -22,7 +22,7 @@
         {% else %}
           {% if udoc.displayName %}
             {{ udoc.displayName }} ({{ udoc.uname }})
-          {% else %}
+            {% else %}
             {{ udoc.uname }}
           {% endif %}
         {% endif %}
