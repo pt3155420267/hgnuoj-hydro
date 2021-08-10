@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import DOMAttachedObject from 'vj/components/DOMAttachedObject';
 
-const TAB_TRANSITION_DURATION = 300;
+const TAB_TRANSITION_DURATION = 500;
 
 export default class Tab extends DOMAttachedObject {
   static DOMAttachKey = 'vjTabInstance';
@@ -47,16 +47,16 @@ export default class Tab extends DOMAttachedObject {
     $newTab.addClass('active');
     const animateParameter = {};
     if (idx < this.currentIndex) {
-      animateParameter.from = '-100%';
-      animateParameter.to = '0%';
+      animateParameter.from = '0';
+      animateParameter.to = '1';
     } else {
-      animateParameter.from = '0%';
-      animateParameter.to = '-100%';
+      animateParameter.from = '1';
+      animateParameter.to = '0';
     }
     $newTab
       .css('opacity', 0);
     this.$content
-      .css('x', animateParameter.from)
+      .css('scale', animateParameter.from)
       .width();
 
     // 2. Animate transition
@@ -78,7 +78,7 @@ export default class Tab extends DOMAttachedObject {
       );
     await this.$content
       .transition({
-        x: animateParameter.to,
+        scale: animateParameter.to,
       }, {
         duration: TAB_TRANSITION_DURATION,
         easing: 'easeOutCubic',
@@ -91,7 +91,7 @@ export default class Tab extends DOMAttachedObject {
       .eq(this.currentIndex)
       .removeClass('active');
     this.$content
-      .css('x', '0');
+      .css('scale', '1');
 
     // 4. Finalize
     this.currentIndex = idx;
