@@ -25,23 +25,7 @@
   </td>
   <td class="col--submit-by">
     <a href="{{ url('user_detail', uid=rdoc.uid) }}">
-      {% if handler
-        .user
-        .hasPriv(PRIV.PRIV_USER_PROFILE)and udoc
-        .stuid %}
-        {% if udoc.class %}
-          <span class="text-badge">{{ udoc.class }}</span>
-        {% endif %}
-        {% if udoc.name %}
-          {{ udoc.name }}
-        {% endif %}
-      {% else %}
-        {% if udoc.displayName %}
-          {{ udoc.displayName }} ({{ udoc.uname }})
-        {% else %}
-          {{ udoc.uname }}
-        {% endif %}
-      {% endif %}
+      {{ user.render_inline(udoc,false,false,false) }}
     </a>
   </td>
   <td class="col--time">

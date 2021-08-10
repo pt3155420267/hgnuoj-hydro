@@ -7,19 +7,28 @@
       <a class="user-profile-name" href="{{ url('user_detail', uid=udoc._id) }}">
         {% if handler
           .user
-          .hasPriv(PRIV.PRIV_USER_PROFILE)and udoc
-          .stuid %}
-          <span class="text-badge">{{ udoc.class }}</span>
-          <span>{{ udoc.name }}</span>
+          .hasPriv(PRIV.PRIV_USER_PROFILE) %}
+          {% if udoc.stuid %}
+            <span class="text-badge">{{ udoc.class }}</span>
+            <span>{{ udoc.name }}</span>
+          {% else %}
+            <span class="text-badge">未完善</span>
+            {% if udoc.displayName %}
+              {{ udoc.displayName }}
+            {% else %}
+              {{ udoc.uname }}
+            {% endif %}
+          {% endif %}
         {% else %}
           {% if udoc.displayName %}
             {{ udoc.displayName }} ({{ udoc.uname }})
-        {% else %}
+          {% else %}
             {{ udoc.uname }}
           {% endif %}
         {% endif %}
         {# {% if udoc.displayName and udoc.displayName != udoc.uname %}
-          {{ udoc.displayName }} ({{ udoc.uname }}) #}
+          {{ udoc.displayName }} ({{ udoc.uname }})
+        {% endif %} #}
       </a>
       {% if badge %}
         {% set level = udoc.level | default(0) %}
