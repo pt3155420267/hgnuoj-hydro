@@ -5,9 +5,10 @@ import { ArgMethod } from '../utils';
 import { UserNotFoundError } from '../error';
 import { Logger } from '../logger';
 import db from '../service/db';
-import { Student } from '../interface';
+import { Student, Udict } from '../interface';
 import * as bus from '../service/bus';
 import { Value } from '../typeutils';
+import UserModel from './user';
 
 const coll = db.collection('stu.info');
 
@@ -70,6 +71,14 @@ class StudentModel {
     @ArgMethod
     static setClass(uid: number, cls: string) {
         return StudentModel.setById(uid, { class: cls });
+    }
+
+    static async getUserListByClassName(domain: string, cls: string): Promise<Udict> {
+        const udocs = [];
+        const students: Student[] = await coll.find({ class: cls }).toArray();
+        // eslint-disable-next-line no-await-in-loop
+        for (const student of students) udocs.push(await UserModel.getById('system', student._id));
+        return udocs;
     }
 }
 

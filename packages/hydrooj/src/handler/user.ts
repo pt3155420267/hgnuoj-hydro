@@ -415,6 +415,20 @@ class StudentInfoHandler extends Handler {
     }
 }
 
+// HGNUOJ 班级信息
+class StudentClassHandler extends Handler {
+    @param('cls', Types.String)
+    async get(domainId: string, cls: string) {
+        const udocs = await student.getUserListByClassName(domainId, cls);
+        this.response.template = 'user_stu_class.html';
+        this.response.body = {
+            className: cls,
+            udocs,
+        };
+        this.extraTitleContent = cls;
+    }
+}
+
 export async function apply() {
     Route('user_login', '/login', UserLoginHandler);
     Route('user_oauth', '/oauth/:type', OauthHandler);
@@ -458,6 +472,7 @@ export async function apply() {
     );
     Route('user_detail', '/user/:uid', UserDetailHandler);
     Route('student_detail', '/student/:uid', StudentInfoHandler);
+    Route('student_class', '/class/:cls', StudentClassHandler);
 }
 
 global.Hydro.handler.user = apply;
