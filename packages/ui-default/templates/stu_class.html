@@ -1,0 +1,48 @@
+{% extends "layout/basic.html" %}
+{% block content %}
+    <div class="row">
+        <div class="medium-12 columns">
+            <div class="section">
+                <div class="section__header">
+                    <h1 class="section__title">班级</h1>
+                </div>
+                <div class="section__body">
+                    总计{{ cls.length }}个班级
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="medium-12 columns">
+            <div class="section">
+                <div class="section__body no-padding">
+                    <div>
+                        <table class="data-table">
+                            <colgroup>
+                                <col class="col--rank">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th class="col--rank">序号</th>
+                                    <th class="col--rank">班级</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {%- for classname in cls -%}
+                                    <tr>
+                                        <td class="col--rank">{{ loop.index }}</td>
+                                        <td class="col--rank">
+                                            <a href="{{ url('student_class',cls=classname) }}">
+                                                {{ classname }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {%- endfor -%}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% endblock %}

@@ -72,6 +72,7 @@ Nav('training_main', {}, 'training', PERM.PERM_VIEW_TRAINING);
 Nav('homework_main', {}, 'homework', PERM.PERM_VIEW_HOMEWORK);
 // 禁用讨论
 // Nav('discussion_main', {}, 'discussion', PERM.PERM_VIEW_DISCUSSION);
+Nav('class', {}, 'class');
 Nav('contest_main', {}, 'contest', PERM.PERM_VIEW_CONTEST);
 Nav('record_main', (handler) => (handler.user.hasPriv(PRIV.PRIV_USER_PROFILE) ? { query: { uidOrName: handler.user._id } } : {}), 'record');
 Nav('ranking', {}, 'ranking', PERM.PERM_VIEW_RANKING);

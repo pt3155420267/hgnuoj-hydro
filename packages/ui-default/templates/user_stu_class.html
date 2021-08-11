@@ -6,6 +6,15 @@
                 <div class="section__header">
                     <h1 class="section__title">班级：{{ className }}</h1>
                 </div>
+                <div class="section__body">
+                    该班级下有{{ udocs.length }}个用户
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="medium-12 columns">
+            <div class="section">
                 <div class="section__body no-padding">
                     <div>
                         {% if not udocs.length %}

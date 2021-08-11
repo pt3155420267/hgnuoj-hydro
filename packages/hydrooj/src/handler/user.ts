@@ -429,6 +429,16 @@ class StudentClassHandler extends Handler {
     }
 }
 
+class ClassHandler extends Handler {
+    async get() {
+        const cls: string[] = await student.getClassList();
+        this.response.template = 'stu_class.html';
+        this.response.body = {
+            cls,
+        };
+    }
+}
+
 export async function apply() {
     Route('user_login', '/login', UserLoginHandler);
     Route('user_oauth', '/oauth/:type', OauthHandler);
@@ -473,6 +483,7 @@ export async function apply() {
     Route('user_detail', '/user/:uid', UserDetailHandler);
     Route('student_detail', '/student/:uid', StudentInfoHandler);
     Route('student_class', '/class/:cls', StudentClassHandler);
+    Route('class', '/class', ClassHandler);
 }
 
 global.Hydro.handler.user = apply;
