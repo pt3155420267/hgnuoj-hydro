@@ -25,17 +25,21 @@
                                 <tr>
                                     <th class="col--rank">序号</th>
                                     <th class="col--rank">班级</th>
+                                    <th class="col--rank">用户数量</th>
+                                    <th class="col--rank">总计AC数</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {%- for classname in cls -%}
+                                {%- for item in cls -%}
                                     <tr>
                                         <td class="col--rank">{{ loop.index }}</td>
                                         <td class="col--rank">
-                                            <a href="{{ url('student_class',cls=classname) }}">
-                                                {{ classname }}
+                                            <a href="{{ url('student_class',cls=item._id) }}">
+                                                {{ item._id }}
                                             </a>
                                         </td>
+                                        <td class="col--rank">{{ item.stuNum }}</td>
+                                        <td class="col--rank">{{ item.nAccept }}</td>
                                     </tr>
                                 {%- endfor -%}
                             </tbody>

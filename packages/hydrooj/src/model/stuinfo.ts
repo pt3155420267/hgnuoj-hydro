@@ -5,7 +5,7 @@ import { ArgMethod } from '../utils';
 // import { UserNotFoundError } from '../error';
 import { Logger } from '../logger';
 import db from '../service/db';
-import { Student, Udict, User } from '../interface';
+import { Student, User } from '../interface';
 import * as bus from '../service/bus';
 import { Value } from '../typeutils';
 import UserModel from './user';
@@ -95,16 +95,30 @@ class StudentModel {
         return StudentModel.setById(uid, { class: cls });
     }
 
-    static async getUserListByClassName(domain: string, cls: string): Promise<Udict> {
-        const udocs: User[] = [];
+    static async getUserUidsByClassName(domain: string, cls: string): Promise<number[]> {
+        const uids: number[] = [];
         const cursor = coll.find({ class: cls }, { sort: { stuid: 1 } });
-        // eslint-disable-next-line no-await-in-loop
-        for (const student of await cursor.toArray()) udocs.push(await UserModel.getById(domain, student._id));
+        for (const student of await cursor.toArray()) uids.push(student._id);
+        return uids;
+    }
+
+    static async getUserListByClassName(domain: string, cls: string): Promise<User[]> {
+        const uids: number[] = await this.getUserUidsByClassName(domain, cls);
+        const udocs: User[] = await Promise.all(uids.map(async (uid) => await UserModel.getById(domain, uid)));
         return udocs;
     }
 
-    static async getClassList(): Promise<string[]> {
-        return await coll.distinct('class', { class: { $not: { $in: [null, ''] } } });
+    static async getClassList(domain: string = 'system'): Promise<object[]> {
+        const clslist = await coll.aggregate([
+            { $match: { class: { $not: { $in: [null, ''] } } } },
+            { $group: { _id: '$class', stuNum: { $sum: 1 } } },
+        ]).toArray();
+        for await (const cls of clslist) {
+            const users: User[] = await this.getUserListByClassName(domain, cls._id.toString());
+            cls['nAccept'] = users.reduce((val, cur) => val + cur.nAccept, 0);
+        }
+        clslist.sort((a, b) => b.nAccept - a.nAccept);
+        return clslist;
     }
 }
 
