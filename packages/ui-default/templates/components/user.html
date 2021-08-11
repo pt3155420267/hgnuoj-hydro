@@ -1,4 +1,4 @@
-{% macro render_inline(udoc, avatar = true, badge = true, modbadge = true) %}
+{% macro render_inline(udoc, avatar = true, badge = true, modbadge = true, class = true) %}
   {% if udoc %}
     <span class="user-profile-link">
       {% if avatar %}
@@ -8,14 +8,18 @@
         .user
         .hasPriv(PRIV.PRIV_USER_PROFILE) %}
         {% if udoc.stuid and udoc.name and udoc.class %}
-          <a href="{{ url('student_class', cls=udoc.class) }}">
-            <span class="text-badge">{{ udoc.class }}</span>
-          </a>
+          {% if class %}
+            <a href="{{ url('student_class', cls=udoc.class) }}">
+              <span class="text-badge">{{ udoc.class }}</span>
+            </a>
+          {% endif %}
           <a class="user-profile-name" href="{{ url('user_detail', uid=udoc._id) }}">
             <span>{{ udoc.name }}</span>
           </a>
         {% else %}
-          <span class="text-badge">未完善</span>
+          {% if class %}
+            <span class="text-badge">未完善</span>
+          {% endif %}
           <a class="user-profile-name" href="{{ url('user_detail', uid=udoc._id) }}">
             {% if udoc.displayName %}
               {{ udoc.displayName }}
