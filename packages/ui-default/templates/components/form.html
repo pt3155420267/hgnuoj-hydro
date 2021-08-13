@@ -1,45 +1,45 @@
 {% macro form_begin(args) %}
-{% set label = args.label %}
-{% set columns = args.columns %}
-{% set last_column = args.last_column|default(true) %}
-{% set required = args.required or false %}
-{% set hotkeys = args.hotkeys or none %}
-{% set row = args.row|default(true) %}
-{% set no_label = args.no_label or false %}
-{% set label_wrap = args.label_wrap|default(true) %}
-{% if row %}
-<div class="row">
-{% endif %}
-  <div
+  {% set label = args.label %}
+  {% set columns = args.columns %}
+  {% set last_column = args.last_column | default(true) %}
+  {% set required = args.required or false %}
+  {% set hotkeys = args.hotkeys or none %}
+  {% set row = args.row | default(true) %}
+  {% set no_label = args.no_label or false %}
+  {% set label_wrap = args.label_wrap | default(true) %}
+  {% if row %}
+    <div class="row">
+    {% endif %}
+    <div
     class="{% if columns %}medium-{{ columns }} {% endif %}columns form__item{% if last_column %} end{% endif %}"
     {% if hotkeys %}data-hotkey="{{ hotkeys }}"{% endif %}
   >
-    {% if not no_label %}
-    <label>
-      {{ _(label) }}
-    {% if required %}
+      {% if not no_label %}
+        <label>
+          {{ _(label) }}
+          {% if required %}
       ({{ _('required') }})
     {% endif %}
-    {% if not label_wrap %}
-    </label>
-    {% endif %}
-    {% endif %}
-{% endmacro %}
+          {% if not label_wrap %}
+          </label>
+        {% endif %}
+      {% endif %}
+    {% endmacro %}
 
-{% macro form_end(args) %}
-{% set help_text = args.help_text or none %}
-{% set row = args.row|default(true) %}
-{% set no_label = args.no_label or false %}
-{% set label_wrap = args.label_wrap|default(true) %}
-  {% if not no_label and label_wrap %}
-    </label>
-  {% endif %}
-  {% if help_text %}
-    <p class="help-text">{{ _(help_text)|safe }}</p>
-  {% endif %}
+    {% macro form_end(args) %}
+      {% set help_text = args.help_text or none %}
+      {% set row = args.row | default(true) %}
+      {% set no_label = args.no_label or false %}
+      {% set label_wrap = args.label_wrap | default(true) %}
+      {% if not no_label and label_wrap %}
+      </label>
+    {% endif %}
+    {% if help_text %}
+      <p class="help-text">{{ _(help_text)|safe }}</p>
+    {% endif %}
   </div>
-{% if row %}
-</div>
+  {% if row %}
+  </div>
 {% endif %}
 {% endmacro %}
 
@@ -53,20 +53,27 @@
 {% set extra_attr = args.extra_attr %}
 {% set date = args.date or false %}
 {% set time = args.time or false %}
-  class="{{ form_class }}{% if extra_class %} {{ extra_class }}{% endif %}"
+  class="{{ form_class }}
+{% if extra_class %}
+  {{ extra_class }}
+{% endif %}"
   {% if disabled %}disabled{% endif %}
-  {% if required %}required{% endif %}
-  {% if autofocus %}autofocus data-autofocus{% endif %}
-  {% if noAutocomplete %}autocomplete="off"{% endif %}
-  {% if date %}data-pick-date{% endif %}
-  {% if time %}data-pick-time{% endif %}
-  {% if extra_attr %}{{ extra_attr }}{% endif %}
-  {% if extra_style %}style="{{extra_style}}"{% endif %}
+{% if required %}required{% endif %}
+{% if autofocus %}autofocus data-autofocus{% endif %}
+{% if noAutocomplete %}autocomplete="off"{% endif %}
+{% if date %}data-pick-date{% endif %}
+{% if time %}data-pick-time{% endif %}
+{% if extra_attr %}{{ extra_attr }}
+{% endif %}
+{% if extra_style %}style="{{extra_style}}"{% endif %}
 {% endmacro %}
 
 {% macro container_attr(container_class, args) %}
 {% set extra_class = args.extra_class or none %}
-  class="{{ container_class }}{% if extra_class %} {{ extra_class }}{% endif %}"
+  class="{{ container_class }}
+{% if extra_class %}
+  {{ extra_class }}
+{% endif %}"
 {% endmacro %}
 
 {% macro select(args) %}
@@ -78,11 +85,11 @@
     name="{{ args.name }}"
     {{ form_attr('select', args) }}
   >
-  {%- for k, v in args.options -%}
-    <option value="{{ k }}"{% if args.value == k %} selected{% endif %}>
-      {{ _(v) }}
-    </option>
-  {%- endfor -%}
+    {%- for k, v in args.options -%}
+      <option value="{{ k }}"{% if args.value == k %} selected{% endif %}>
+        {{ _(v) }}
+      </option>
+    {%- endfor -%}
   </select>
 </div>
 {% endmacro %}
@@ -98,17 +105,18 @@
   name="form_item_{{ args.name }}"
   {{ container_attr('radiobox-container', args) }}
 >
-{%- for k, v in options -%}
-  <label class="radiobox">
-    <input
+  {%- for k, v in options -%}
+    <label class="radiobox">
+      <input
       value="{{ k }}"
       type="radio"
       name="{{ v }}"
       {{ form_attr('radiobox__input', args) }}
       {% if value == args.id %} checked{% endif %}
-    /> {{ _(v) }}
-  </label>
-{%- endfor -%}
+/>
+      {{ _(v) }}
+    </label>
+  {%- endfor -%}
 </div>
 {% endmacro %}
 
@@ -123,20 +131,20 @@
   name="form_item_{{ args.name }}"
   {{ container_attr('radiobox-container with-image', args) }}
 >
-{%- for k, v in options -%}
-  <label class="radiobox with-image">
-    <input
+  {%- for k, v in options -%}
+    <label class="radiobox with-image">
+      <input
       value="{{ k }}"
       type="radio"
       name="{{ args.name }}"
       {{ form_attr('radiobox__input', args) }}
       {% if value == k %} checked{% endif %}
-    />
-    <div class="radiobox__image-container" data-tooltip="{{ _(v) }}">
-      <div class="radiobox__image {{ image_class.format(k) }}"></div>
-    </div>
-  </label>
-{%- endfor -%}
+/>
+      <div class="radiobox__image-container" data-tooltip="{{ _(v) }}">
+        <div class="radiobox__image {{ image_class.format(k) }}"></div>
+      </div>
+    </label>
+  {%- endfor -%}
 </div>
 {% endmacro %}
 
@@ -152,9 +160,10 @@
   {{ container_attr('textbox-container', args) }}
 >
   <input
-    type="{{ args.type or 'text' }}"
+    type="{{ 'number' if args.type === 'float' else args.type|default('text') }}"
     name="{{ args.name }}"
     value="{{ args.value }}"
+    {% if args.type === 'float' %} step="any"{% endif %}
     placeholder="{{ args.placeholder }}"
     {{ form_attr('textbox', args) }}
   >
