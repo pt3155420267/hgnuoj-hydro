@@ -7,7 +7,6 @@ import {
     ContestNotLiveError, ValidationError, ProblemNotFoundError,
     ContestNotAttendedError, PermissionError, BadRequestError,
     ContestNotFoundError, InvalidTokenError, RecordNotFoundError,
-    NotFoundError,
 } from '../error';
 import { ProblemDoc, Tdoc, User } from '../interface';
 import paginate from '../lib/paginate';
@@ -320,7 +319,12 @@ export class ContestProblemFileDownloadHandler extends ContestProblemHandler {
         if (typeof this.pdoc.docId === 'string') this.pdoc.docId = this.pdoc.docId.split(':')[1];
         const target = `problem/${this.pdoc.domainId}/${this.pdoc.docId}/additional_file/${filename}`;
         const file = await storage.getMeta(target);
-        if (!file) throw new NotFoundError(filename);
+        if (!file) {
+            this.response.redirect = await storage.signDownloadLink(
+                target, noDisposition ? undefined : filename, false, 'user',
+            );
+            return;
+        }
         this.response.etag = file.etag;
         const type = lookup(filename).toString();
         const shouldProxy = ['image', 'video', 'audio', 'pdf', 'vnd'].filter((i) => type.includes(i)).length;

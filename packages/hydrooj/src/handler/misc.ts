@@ -2,8 +2,7 @@
 import { pick } from 'lodash';
 import { lookup } from 'mime-types';
 import {
-    BadRequestError, ForbiddenError, NotFoundError,
-    ValidationError,
+    BadRequestError, ForbiddenError, ValidationError,
 } from '../error';
 import { sortFiles } from '../utils';
 import { PRIV } from '../model/builtin';
@@ -111,7 +110,12 @@ export class FSDownloadHandler extends Handler {
         this.response.addHeader('Cache-Control', 'public');
         const target = `user/${uid}/${filename}`;
         const file = await storage.getMeta(target);
-        if (!file) throw new NotFoundError(filename);
+        if (!file) {
+            this.response.redirect = await storage.signDownloadLink(
+                target, noDisposition ? undefined : filename, false, 'user',
+            );
+            return;
+        }
         this.response.etag = file.etag;
         const type = lookup(filename).toString();
         const shouldProxy = ['image', 'video', 'audio', 'pdf', 'vnd'].filter((i) => type.includes(i)).length;
