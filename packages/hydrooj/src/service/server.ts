@@ -17,6 +17,7 @@ import cache from 'koa-static-cache';
 import sockjs from 'sockjs';
 import cac from 'cac';
 import { createHash } from 'crypto';
+import { parseMemoryMB } from '@hydrooj/utils/lib/utils';
 import * as bus from './bus';
 import { errorMessage } from '../utils';
 import { User, DomainDoc } from '../interface';
@@ -271,8 +272,10 @@ export async function prepare() {
     }
     app.use(Body({
         multipart: true,
+        jsonLimit: '8mb',
+        formLimit: '8mb',
         formidable: {
-            maxFileSize: 256 * 1024 * 1024,
+            maxFileSize: parseMemoryMB(system.get('server.upload') || '256m') * 1024 * 1024,
         },
     }));
 }
@@ -307,7 +310,7 @@ export class HandlerCommon {
 
     translate(str: string) {
         if (!str) return '';
-        return str.toString().translate(this.user.viewLang, this.session.viewLang, system.get('server.language'));
+        return str.toString().translate(this.user?.viewLang, this.session?.viewLang, system.get('server.language'));
     }
 
     renderTitle(str: string) {
@@ -330,8 +333,8 @@ export class HandlerCommon {
     async renderHTML(name: string, context: any): Promise<string> {
         const UserContext: any = {
             ...this.user,
-            avatar: avatar(this.user.avatar || '', 128),
-            perm: this.user.perm.toString(),
+            avatar: avatar(this.user?.avatar || '', 128),
+            perm: this.user?.perm?.toString(),
             viewLang: this.translate('__id'),
         };
         if (!global.Hydro.lib.template) return JSON.stringify(context, serializer);
@@ -838,6 +841,7 @@ export function Connection(
     const sock = sockjs.createServer({ prefix, log });
     const checker = Checker(permPrivChecker);
     sock.on('connection', async (conn) => {
+        if (!conn) return;
         const h: Dictionary<any> = new RouteConnHandler(conn);
         try {
             const args = { domainId: 'system', ...h.request.params };
