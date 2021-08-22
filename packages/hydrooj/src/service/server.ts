@@ -27,6 +27,7 @@ import {
     UserFacingError, ValidationError, PrivilegeError,
     CsrfTokenError, InvalidOperationError, MethodNotAllowedError,
     NotFoundError, HydroError, SystemError,
+    LoginError,
 } from '../error';
 import { isContent, isName, isTitle } from '../lib/validator';
 import avatar from '../lib/avatar';
@@ -650,11 +651,15 @@ export class Handler extends HandlerCommon {
             logger.error(`User: ${this.user._id}(${this.user.uname}) Path: ${this.request.path}`, error.msg(), error.params);
             if (error.stack) logger.error(error.stack);
         }
-        this.response.status = error instanceof UserFacingError ? error.code : 500;
-        this.response.template = error instanceof UserFacingError ? 'error.html' : 'bsod.html';
-        this.response.body = {
-            error: { message: error.msg(), params: error.params, stack: errorMessage(error.stack) },
-        };
+        if (this.user?._id === 0 && !(error instanceof LoginError)) {
+            this.response.redirect = this.url('user_login', { query: { redirect: this.request.path + this.ctx.search } });
+        } else {
+            this.response.status = error instanceof UserFacingError ? error.code : 500;
+            this.response.template = error instanceof UserFacingError ? 'error.html' : 'bsod.html';
+            this.response.body = {
+                error: { message: error.msg(), params: error.params, stack: errorMessage(error.stack) },
+            };
+        }
         await this.finish().catch(() => { });
     }
 }
@@ -692,7 +697,7 @@ async function handle(ctx, HandlerClass, checker) {
             } else if (typeof h.post !== 'function') {
                 throw new MethodNotAllowedError(method);
             }
-        } else if (typeof h[method] !== 'function' && typeof h.all !== 'function') {
+        } else if (typeof h[method] !== 'function') {
             throw new MethodNotAllowedError(method);
         }
 
