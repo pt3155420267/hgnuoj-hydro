@@ -27,7 +27,6 @@ import {
     UserFacingError, ValidationError, PrivilegeError,
     CsrfTokenError, InvalidOperationError, MethodNotAllowedError,
     NotFoundError, HydroError, SystemError,
-    LoginError,
 } from '../error';
 import { isContent, isName, isTitle } from '../lib/validator';
 import avatar from '../lib/avatar';
@@ -439,7 +438,7 @@ export class Handler extends HandlerCommon {
             query: ctx.query,
             path: ctx.path,
             params: ctx.params,
-            referer: ctx.request.headers.referer,
+            referer: ctx.request.headers.referer || '',
             json: (ctx.request.headers.accept || '').includes('application/json'),
         };
         this.response = {
@@ -651,13 +650,13 @@ export class Handler extends HandlerCommon {
             logger.error(`User: ${this.user._id}(${this.user.uname}) Path: ${this.request.path}`, error.msg(), error.params);
             if (error.stack) logger.error(error.stack);
         }
-        if (this.user?._id === 0 && !(error instanceof LoginError)) {
+        if (this.user?._id === 0 && (error instanceof PermissionError || error instanceof PrivilegeError)) {
             this.response.redirect = this.url('user_login', { query: { redirect: this.request.path + this.ctx.search } });
         } else {
             this.response.status = error instanceof UserFacingError ? error.code : 500;
             this.response.template = error instanceof UserFacingError ? 'error.html' : 'bsod.html';
             this.response.body = {
-                error: { message: error.msg(), params: error.params, stack: errorMessage(error.stack) },
+                error: { message: error.msg(), params: error.params, stack: errorMessage(error.stack || '') },
             };
         }
         await this.finish().catch(() => { });
@@ -679,11 +678,9 @@ async function handle(ctx, HandlerClass, checker) {
     h.domainId = args.domainId;
     try {
         const method = ctx.method.toLowerCase();
-        let operation: string;
-        if (method === 'post' && ctx.request.body.operation) {
-            operation = `_${ctx.request.body.operation}`
-                .replace(/_([a-z])/gm, (s) => s[1].toUpperCase());
-        }
+        const operation = (method === 'post' && ctx.request.body.operation)
+            ? `_${ctx.request.body.operation}`.replace(/_([a-z])/gm, (s) => s[1].toUpperCase())
+            : '';
 
         await bus.serial('handler/create', h);
 
