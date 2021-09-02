@@ -13,7 +13,7 @@ const xss = new Xss.FilterXSS({
     bdi: ['dir'],
     bdo: ['dir'],
     big: [],
-    blockquote: ['cite'],
+    blockquote: ['cite', 'class'],
     br: [],
     caption: [],
     center: [],
