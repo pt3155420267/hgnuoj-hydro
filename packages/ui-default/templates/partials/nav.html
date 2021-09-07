@@ -12,9 +12,11 @@
       <ol class="nav__list nav__list--main clearfix">
         <li class="nav__list-item">
           <!-- <a href="/" class="nav__logo" style="background-size: 100% 100%;">&nbsp;</a> -->
-          <h2 
-          style="height: 44px; line-height: 44px;font-weight: bolder; margin: 0;padding:0 10px 0 10px;"
-          >HGNUOJ</h2>
+          <a href="/" style="text-decoration: none;">
+            <h2 
+              style="height: 44px; line-height: 44px;font-weight: bolder; margin: 0;padding:0 10px 0 10px;"
+            >HGNUOJ</h2>
+          </a>
         </li>
         {%- for item in ui.nodes.nav -%}
           {% if item.checker(handler) %}
