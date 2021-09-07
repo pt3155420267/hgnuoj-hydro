@@ -8,6 +8,7 @@
 {% endif %}
   <div>
     <ol class="menu">
+    {# 禁用讨论
     {% if page_name == 'discussion_node' or page_name == 'discussion_detail' %}
     {% if handler.user.hasPerm(perm.PERM_CREATE_DISCUSSION) %}
       <li class="menu__item"><a class="menu__link highlight" href="{{ url('discussion_create', type='problem', name=pdoc.docId) }}">
@@ -24,6 +25,7 @@
     {% endif %}
       <li class="menu__seperator"></li>
     {% endif %}
+    #}
     {% if page_name == 'problem_detail' %}
     {% if handler.user.hasPerm(perm.PERM_SUBMIT_PROBLEM) %}
       <li class="menu__item scratchpad--hide"><a class="menu__link highlight" name="problem-sidebar__open-scratchpad" href="javascript:;" data-global-hotkey="alt+e">
@@ -65,11 +67,13 @@
     {% if handler.user.hasPerm(perm.PERM_VIEW_DISCUSSION) or handler.user.hasPerm(perm.PERM_VIEW_PROBLEM_SOLUTION) %}
       <li class="menu__seperator"></li>
     {% endif %}
+    {# 禁用讨论入口
     {% if handler.user.hasPerm(perm.PERM_VIEW_DISCUSSION) %}
       <li class="menu__item"><a class="menu__link{% if page_name == 'discussion_node' or page_name == 'discussion_detail' %} active{% endif %}" href="{{ url('discussion_node', type='problem', name=pdoc.docId) }}">
         <span class="icon icon-comment--text"></span> {{ _('Discussions') }}
       </a></li>
     {% endif %}
+    #}
     {% if handler.user.hasPerm(perm.PERM_VIEW_PROBLEM_SOLUTION) %}
       <li class="menu__item"><a class="menu__link{% if page_name == 'problem_solution' %} active{% endif %}" href="{{ url('problem_solution', pid=pdoc.pid|default(pdoc.docId)) }}">
         <span class="icon icon-comment--text"></span> {{ _('Solutions') }}
