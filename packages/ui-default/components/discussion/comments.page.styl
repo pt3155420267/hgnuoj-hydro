@@ -39,135 +39,109 @@ $downvote-color = red;
 .dczcomments__reply {
   >.media {
     // FIXME doesn't work on IE 11
-    display: flex;
+    display: flex
 
-    >.media__body {
-      width: calc(100% - (50px + 0.625rem));
-    }
-  }
+    >.media__body
+      width: calc(100% - (50px + 0.625rem))
 
-  &:last-child {
-    >.media {
-      padding-bottom: 0;
-    }
-  }
-}
+  &:last-child
+    >.media
+      padding-bottom: 0
 
-.dczcomments__item > .media {
-  display: flex;
+.dczcomments__item > .media
+  display: flex
+  >.media__body
+    max-width: calc(100% - 6.5em)
+    +mobile()
+      max-width: 100%
 
-  >.media__body {
-    max-width: calc(100% - 6.5em);
-  }
-}
+.dczcomments__supplementary
+  float: left
+  margin-bottom: rem(5px)
 
-.dczcomments__supplementary {
-  float: left;
-  margin-bottom: rem(5px);
-}
+.dczcomments__operations
+  font-size: rem($font-size)
+  float: right
+  vertical-align: top
+  color: $comment-op-color
 
-.dczcomments__operations {
-  font-size: rem($font-size);
-  float: right;
-  vertical-align: top;
-  color: $comment-op-color;
+  a, a:visited
+    color: $comment-op-link-color
+    margin-left: rem(3px)
+  a:hover
+    color: $primary-color
+    text-decoration: none
 
-  a, a:visited {
-    color: $comment-op-link-color;
-    margin-left: rem(3px);
-  }
+.view--solution .dczcomments__replies
+  margin-left: rem(50px)
 
-  a:hover {
-    color: $primary-color;
-    text-decoration: none;
-  }
-}
+.dczcomments__item
+  .vote-number
+    width: rem(82px)
+    text-align: center
+    font-size: rem(25px)
+    font-weight: 300
+    margin-bottom: rem(10px)
 
-.view--solution .dczcomments__replies {
-  margin-left: rem(50px);
-}
+  .vote-op
+    position: relative
+    border: 1px solid transparent
+    border-radius: rem(14px)
+    transition: border-color .2s linear, opacity .2s linear
+    opacity: 0.5
 
-.dczcomments__item {
-  .vote-number {
-    width: rem(82px);
-    text-align: center;
-    font-size: rem(25px);
-    font-weight: 300;
-    margin-bottom: rem(10px);
-  }
+    &>form
+      width: rem(40px)
+      float: left
+      position: relative
 
-  .vote-op {
-    position: relative;
-    border: 1px solid transparent;
-    border-radius: rem(14px);
-    transition: border-color 0.2s linear, opacity 0.2s linear;
-    opacity: 0.5;
+  &:hover .vote-op
+    opacity: 1
+    border-color: $supplementary-border-color
 
-    &>form {
-      width: rem(40px);
-      float: left;
-      position: relative;
-    }
-  }
+  .vote-button
+    appearance: none
+    border: 0
+    background: none
+    width: 100%
+    outline: 0
+    font-size: rem($font-size-icon)
+    line-height: rem(26px)
+    color: #AAA
+    transition: color .2s linear, background-color .2s linear, box-shadow .2s linear
 
-  &:hover .vote-op {
-    opacity: 1;
-    border-color: $supplementary-border-color;
-  }
+    &.upvote
+      border-radius: rem(13px 0 0 13px)
+      padding-left: rem(7px)
 
-  .vote-button {
-    appearance: none;
-    border: 0;
-    background: none;
-    width: 100%;
-    outline: 0;
-    font-size: rem($font-size-icon);
-    line-height: rem(26px);
-    color: #AAA;
-    transition: color 0.2s linear, background-color 0.2s linear, box-shadow 0.2s linear;
+      &:hover
+        background: $upvote-color
+        color: #FFF
+        box-shadow: 0 2px 10px rgba($upvote-color, 0.4)
 
-    &.upvote {
-      border-radius: rem(13px 0 0 13px);
-      padding-left: rem(7px);
+      &.active
+        color: $upvote-color
 
-      &:hover {
-        background: $upvote-color;
-        color: #FFF;
-        box-shadow: 0 2px 10px rgba($upvote-color, 0.4);
-      }
 
-      &.active {
-        color: $upvote-color;
-      }
-    }
+    &.downvote
+      border-radius: rem(0 13px 13px 0)
+      padding-right: rem(7px)
 
-    &.downvote {
-      border-radius: rem(0 13px 13px 0);
-      padding-right: rem(7px);
+      &:hover
+        background: $downvote-color
+        color: #FFF
+        box-shadow: 0 2px 10px rgba($downvote-color, 0.4)
 
-      &:hover {
-        background: $downvote-color;
-        color: #FFF;
-        box-shadow: 0 2px 10px rgba($downvote-color, 0.4);
-      }
+      &.active
+        color: $downvote-color
 
-      &.active {
-        color: $downvote-color;
-      }
-    }
+    &.active
+      background: transparent !important
+      box-shadow: none !important
+      cursor: default
 
-    &.active {
-      background: transparent !important;
-      box-shadow: none !important;
-      cursor: default;
-    }
-  }
-}
 
-+mobile() {
-  .dczcomments__item {
-    .media__left {
-      display: none;
-    }
-  }
-}
++mobile()
+  .dczcomments__item
+    .media__left
+      display: none
