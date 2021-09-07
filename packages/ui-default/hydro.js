@@ -64,7 +64,7 @@ async function load() {
     $element.addClass('visible');
     if (shouldDelay) await delay(50);
   }
-  await delay(500);
+  await delay(200);
   // eslint-disable-next-line no-restricted-syntax
   for (const { $element } of sections) $element.trigger('vjLayout');
   $(document).trigger('vjPageFullyInitialized');
