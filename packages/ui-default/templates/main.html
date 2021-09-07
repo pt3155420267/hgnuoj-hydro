@@ -49,6 +49,32 @@
         </div>
         <div class="section__body typo" name="hitokoto"></div>
       </div>
+      {% if domain['_id'] === 'system' %}
+      <div class="section side nojs--hide">
+        <div class="section__header">
+          <h1 class="section__title">全站统计</h1>
+        </div>
+        <div class="section__body typo">
+          <span>相关功能开发中...</span>
+        </div>
+      </div>
+      <div class="section side nojs--hide">
+        <div class="section__header">
+          <h1 class="section__title">服务器运行状况</h1>
+        </div>
+        <div class="section__body typo">
+          <span>相关功能开发中...</span>
+        </div>
+      </div>
+      {% endif %}
+      <div class="section side nojs--hide">
+        <div class="section__header">
+          <h1 class="section__title">算法学习相关</h1>
+        </div>
+        <div class="section__body typo">
+          <span>相关功能开发中...</span>
+        </div>
+      </div>
       {# {% if handler
         .user
         .hasPerm(perm.PERM_VIEW_DISCUSSION) %}

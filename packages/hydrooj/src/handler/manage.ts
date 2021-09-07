@@ -238,12 +238,72 @@ class SystemUserImportHandler extends SystemHandler {
     }
 }
 
+// HGNUOJ Added
+// todo
+class StudentImportHandler extends SystemHandler {
+    async get() {
+        this.response.body.users = [];
+        this.response.body.path.push(['manage_student_import']);
+        this.response.template = 'manage_student_import.html';
+    }
+
+    @param('users', Types.Content)
+    @param('draft', Types.Boolean)
+    async post(domainId: string, _users: string, draft: boolean) {
+        const users = _users.split('\n');
+        const udocs = [];
+        const messages = [];
+        for (const i in users) {
+            const u = users[i];
+            if (!u.trim()) continue;
+            let [email, username, password, displayName] = u.split(',').map((t) => t.trim());
+            if (!email || !username || !password) [email, username, password, displayName] = u.split('\t').map((t) => t.trim());
+            if (email && username && password) {
+                if (!isEmail(email)) messages.push(`Line ${+i + 1}: Invalid email.`);
+                else if (!isUname(username)) messages.push(`Line ${+i + 1}: Invalid username`);
+                else if (!isPassword(password)) messages.push(`Line ${+i + 1}: Invalid password`);
+                // eslint-disable-next-line no-await-in-loop
+                else if (await user.getByEmail('system', email)) {
+                    messages.push(`Line ${+i + 1}: Email ${email} already exists.`);
+                    // eslint-disable-next-line no-await-in-loop
+                } else if (await user.getByUname('system', username)) {
+                    messages.push(`Line ${+i + 1}: Username ${username} already exists.`);
+                } else {
+                    udocs.push({
+                        email, username, password, displayName,
+                    });
+                }
+            } else messages.push(`Line ${+i + 1}: Input invalid.`);
+        }
+        messages.push(`${udocs.length} users found.`);
+        if (!draft) {
+            for (const {
+                email, username, password, displayName,
+            } of udocs) {
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    const uid = await user.create(email, username, password);
+                    // eslint-disable-next-line no-await-in-loop
+                    if (displayName) await domain.setUserInDomain(domainId, uid, { displayName });
+                } catch (e) {
+                    messages.push(e.message);
+                }
+            }
+        }
+        this.response.body.path.push(['manage_user_import']);
+        this.response.body.users = udocs;
+        this.response.body.messages = messages;
+    }
+}
+
 async function apply() {
     Route('manage', '/manage', SystemMainHandler);
     Route('manage_dashboard', '/manage/dashboard', SystemDashboardHandler);
     Route('manage_script', '/manage/script', SystemScriptHandler);
     Route('manage_setting', '/manage/setting', SystemSettingHandler);
     Route('manage_user_import', '/manage/userimport', SystemUserImportHandler);
+    Route('manage_student_import', '/manage/studentimport', StudentImportHandler);
+    Route('manage_teacher_register', '/manage/teacherreg', StudentImportHandler);
     Connection('manage_check', '/manage/check-conn', SystemCheckConnHandler);
 }
 
