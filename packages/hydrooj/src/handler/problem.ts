@@ -29,6 +29,7 @@ import * as bus from '../service/bus';
 import {
     Route, Handler, Types, param, post, route, query,
 } from '../service/server';
+import { logger } from '../logger';
 
 export const parseCategory = (value: string) => flatten(value.replace(/，/g, ',').split(',')).map((e) => e.trim());
 export const parsePid = (value: string) => (isSafeInteger(value) ? +value : value);
@@ -116,7 +117,7 @@ export class ProblemMainHandler extends ProblemHandler {
         await bus.serial('problem/list', query, this);
         // eslint-disable-next-line prefer-const
         let [pdocs, ppcount, pcount] = await paginate(
-            problem.getMulti(domainId, query).sort({ pid: 1, docId: 1 }),
+            problem.getMulti(domainId, query, [...problem.PROJECTION_LIST, 'data']).sort({ pid: 1, docId: 1 }),
             page,
             system.get('pagination.problem'),
         );

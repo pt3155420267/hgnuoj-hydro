@@ -59,7 +59,7 @@
           {% endif %}
         {% endif %}
         <td class="col--name col--problem-name">
-          {{ problem.render_problem_title(pdoc) }}
+          {% if not pdoc.data.length %}<span style="color: red">(无测试数据)</span>{% endif %}{{ problem.render_problem_title(pdoc) }}
         </td>
         <td class="col--tried">{{ pdoc.nSubmit }}</td>
         <td class="col--ac">{{ pdoc.nAccept }}</td>
