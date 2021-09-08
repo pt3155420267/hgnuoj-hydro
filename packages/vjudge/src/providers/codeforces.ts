@@ -128,7 +128,17 @@ export default class CodeforcesProvider implements IBasicProvider {
         const [, contestId, problemId] = id.startsWith('P921')
             ? ['', '921', '01']
             : /^P(\d+)([A-Z][0-9]*)$/.exec(id);
-        const res = await this.get(`/problemset/problem/${contestId}/${problemId}`);
+        let res = null;
+        while (!res) {
+            try {
+                res = await this.get(`/problemset/problem/${contestId}/${problemId}`);
+            } catch (error) {
+                logger.error('error occured while downloading problem: ', `/problemset/problem/${contestId}/${problemId}`);
+                logger.error(error);
+                logger.info('waiting 5 secs to retry...');
+            }
+            await sleep(5000);
+        }
         if (!res.text) return await this.getPdfProblem(id);
         const $dom = new JSDOM(res.text.replace(/\$\$\$/g, '$'));
         const tag = Array.from($dom.window.document.querySelectorAll('.tag-box')).map((i) => i.textContent.trim());
