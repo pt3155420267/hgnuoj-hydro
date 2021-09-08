@@ -451,7 +451,7 @@ class StudentClassHandler extends Handler {
 
 class ClassHandler extends Handler {
     async get() {
-        const cls: string[] = await student.getClassList();
+        const cls: any[] = await student.getClassList();
         this.response.template = 'stu_class.html';
         this.response.body = {
             cls,
