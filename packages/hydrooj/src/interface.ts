@@ -33,7 +33,6 @@ export interface SystemKeys {
     'server.url': string,
     'server.xff': string,
     'server.xhost': string,
-    'server.worker': number,
     'server.port': number,
     'server.language': string,
     'limit.problem_files_max': number,
@@ -537,6 +536,13 @@ export interface FileNode {
     meta?: ItemBucketMetadata,
 }
 
+export interface EventDoc {
+    ack: string[];
+    event: number | string;
+    payload: string;
+    expire: Date;
+}
+
 export interface Collections {
     'blacklist': BlacklistDoc;
     'contest': Tdoc;
@@ -557,6 +563,7 @@ export interface Collections {
     'task': Task;
     'storage': FileNode;
     'oplog': OplogDoc;
+    'event': EventDoc;
     'opcount': any;
     'fs.chunks': any;
     'fs.files': any;
@@ -648,7 +655,6 @@ export interface HydroGlobal {
     Logger: typeof import('./logger').Logger,
     logger: typeof import('./logger').logger,
     locales: Record<string, Record<string, string>>,
-    isFirstWorker: boolean,
 }
 
 declare global {
