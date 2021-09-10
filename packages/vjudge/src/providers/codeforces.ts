@@ -1,16 +1,16 @@
 /* eslint-disable no-await-in-loop */
+import { PassThrough } from 'stream';
+import { JSDOM } from 'jsdom';
 import * as superagent from 'superagent';
 import proxy from 'superagent-proxy';
-import { JSDOM } from 'jsdom';
 import { STATUS } from '@hydrooj/utils/lib/status';
 import { sleep } from '@hydrooj/utils/lib/utils';
 import { buildContent } from 'hydrooj/src/lib/content';
-import * as setting from 'hydrooj/src/model/setting';
 import { Logger } from 'hydrooj/src/logger';
-import { PassThrough } from 'stream';
+import * as setting from 'hydrooj/src/model/setting';
 import { IBasicProvider, RemoteAccount } from '../interface';
 
-proxy(superagent);
+proxy(superagent as any);
 const logger = new Logger('codeforces');
 
 const VERDICT = {
@@ -128,17 +128,7 @@ export default class CodeforcesProvider implements IBasicProvider {
         const [, contestId, problemId] = id.startsWith('P921')
             ? ['', '921', '01']
             : /^P(\d+)([A-Z][0-9]*)$/.exec(id);
-        let res = null;
-        while (!res) {
-            try {
-                res = await this.get(`/problemset/problem/${contestId}/${problemId}`);
-            } catch (error) {
-                logger.error('error occured while downloading problem: ', `/problemset/problem/${contestId}/${problemId}`);
-                logger.error(error);
-                logger.info('waiting 5 secs to retry...');
-            }
-            await sleep(5000);
-        }
+        const res = await this.get(`/problemset/problem/${contestId}/${problemId}`);
         if (!res.text) return await this.getPdfProblem(id);
         const $dom = new JSDOM(res.text.replace(/\$\$\$/g, '$'));
         const tag = Array.from($dom.window.document.querySelectorAll('.tag-box')).map((i) => i.textContent.trim());
