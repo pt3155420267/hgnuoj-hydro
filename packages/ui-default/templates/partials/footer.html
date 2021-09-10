@@ -106,14 +106,6 @@
               </li>
             </ol>
           </li>
-          <li class="footer__extra-link-item" data-dropdown-target="#menu-footer-theme">
-            <span><span class="icon icon-global"></span> Theme <span class="icon icon-expand_less"></span></span>
-            <ol class="dropdown-target menu" id="menu-footer-theme">
-            {%- for k in UiContext.themes -%}
-              <li class="menu__item"><a class="menu__link" href="{{ url('set_theme', id=k) }}">{{ k }}</a></li>
-            {%- endfor -%}
-            </ol>
-          </li>
         </ol>
       </div>
       <div class="footer__extra-right">
@@ -124,11 +116,7 @@
           {%- endfor -%}
           <li class="footer__extra-link-item">Worker {{ process.env.NODE_APP_INSTANCE }} in {{ Date.now() - handler.args.__start }}ms</li>
           <li class="footer__extra-link-item">Powered by <a href="https://hydro.js.org">Hydro v{{ global.Hydro.version.hydrooj }}</a></li>
-          {% if model.system.get('server.pro') %}
-            <li class="footer__extra-link-item">Professional Version</li>
-          {% else %}
-            <li class="footer__extra-link-item">Community Version</li>
-          {% endif %} #}
+          <li class="footer__extra-link-item">Modified by <a href="/class/HGNU%20ACM%20TEAM">HGNU ACM TEAM</a><a href="https://github.com/HGNU/hgnuoj-hydro">(Repo Link)</a></li>
             </ol>
           </div>
         </div>
