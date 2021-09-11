@@ -1,4 +1,5 @@
 {% extends "layout/basic.html" %}
+{% import "components/nothing.html" as nothing with context %}
 {% block content %}
     <div class="row">
         <div class="medium-12 columns">
@@ -7,7 +8,7 @@
                     <h1 class="section__title">课程</h1>
                 </div>
                 <div class="section__body">
-                    总计{{ domains.length }}个课程
+                    总计{{ domains.length | d(0) }}个课程
                 </div>
             </div>
         </div>
@@ -16,6 +17,9 @@
         <div class="medium-12 columns">
             <div class="section">
                 <div class="section__body">
+                    {% if not domains.length %}
+                        {{ nothing.render('没有课程。') }}
+                    {% else %}
                     <div class="row">
                         {% for item in domains %}
                             <div class="medium-3 columns">
@@ -42,6 +46,7 @@
                                 {% endif %}
                             {% endif %}
                         {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
