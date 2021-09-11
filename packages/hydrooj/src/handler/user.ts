@@ -495,9 +495,9 @@ export async function apply() {
         PRIV.PRIV_USER_PROFILE,
     );
     Route('user_detail', '/user/:uid', UserDetailHandler);
-    Route('student_detail', '/student/:uid', StudentInfoHandler);
-    Route('student_class', '/class/:cls', StudentClassHandler);
-    Route('class', '/class', ClassHandler);
+    Route('student_detail', '/student/:uid', StudentInfoHandler, PRIV.PRIV_USER_PROFILE);
+    Route('student_class', '/class/:cls', StudentClassHandler, PRIV.PRIV_USER_PROFILE);
+    Route('class', '/class', ClassHandler, PRIV.PRIV_USER_PROFILE);
 }
 
 global.Hydro.handler.user = apply;
