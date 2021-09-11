@@ -887,5 +887,6 @@ stu_class: 班级
 setting_student: 学生信息
 Stu_ID: 学号
 Stu_ClassName: 专业班级
+Reg_Stu_ClassName: 专业班级(例如：软工1901、计算机2006)
 Stu_RealName: 姓名
 reg_stuwarn: 请使用真实学生信息填写！
