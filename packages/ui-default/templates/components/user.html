@@ -4,9 +4,11 @@
       {% if avatar %}
         <img class="small user-profile-avatar v-center" loading="lazy" src="{{ avatarUrl(udoc.avatar|default('')) }}" width="20" height="20">
       {% endif %}
+      {#
       {% if handler
         .user
         .hasPriv(PRIV.PRIV_USER_PROFILE) %}
+      #}
         {% if udoc.name and udoc.class %}
           <a href="{{ url('student_class', cls=udoc.class) }}">
             <span class="text-badge">{{ udoc.class }}</span>
@@ -26,13 +28,14 @@
             {% endif %}
           </a>
         {% endif %}
-      {% else %}
+      {#{% else %}
         {% if udoc.displayName %}
           {{ udoc.displayName }} ({{ udoc.uname }})
             {% else %}
           {{ udoc.uname }}
         {% endif %}
       {% endif %}
+      #}
       {# {% if udoc.displayName and udoc.displayName != udoc.uname %}
           {{ udoc.displayName }} ({{ udoc.uname }})
         {% endif %} #}
