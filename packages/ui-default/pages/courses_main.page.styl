@@ -1,0 +1,41 @@
+.page--courses_main
+  .course-card
+    display: inline-block
+    padding: 20px
+    padding-bottom: 10px
+    width: 100%
+    // height: 200px
+    // border-radius: 10px
+    border-style: solid
+    border-color: rgba(#AFC2C9, 0.6)
+    border-width: 1px
+    box-shadow: 0 2px 3px rgba(#AFC2C9, 0.3)
+    // background-color: azure
+
+  .course-card .course-card-header
+    font-size: 12px
+    
+  .course-card .course-card-header h1
+    font-weight: normal
+
+  .course-card .course-card-body
+    font-size: 14px
+    margin-top: 10px
+
+  .course-card .course-card-body p
+    padding: 5px 0 5px 0
+    line-height: 20px
+
+  +tablet()
+    .course-card .course-card-header
+      font-size: 10px
+    .course-card .course-card-body
+      font-size: 10px
+    .course-card .button
+      font-size: 4px
+
+  +mobile()
+    .course-card .course-card-header
+      font-size: 10px
+    .course-card .course-card-body
+      font-size: 10px

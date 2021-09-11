@@ -1,0 +1,49 @@
+{% extends "layout/basic.html" %}
+{% block content %}
+    <div class="row">
+        <div class="medium-12 columns">
+            <div class="section">
+                <div class="section__header">
+                    <h1 class="section__title">课程</h1>
+                </div>
+                <div class="section__body">
+                    总计{{ domains.length }}个课程
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="medium-12 columns">
+            <div class="section">
+                <div class="section__body">
+                    <div class="row">
+                        {% for item in domains %}
+                            <div class="medium-3 columns">
+                                <div class="course-card">
+                                    <div class="course-card-header">
+                                        <h1>{{ item.name }}</h1>
+                                    </div>
+                                    <div class="course-card-body">
+                                        <p>创建者：{{ user.render_inline(uDocs[item.owner],false,false,false) }}</p>
+                                        <p>加入人数：{{ item.users }}</p>
+                                        <div class="text-right">
+                                            <a href="/d/{{ item._id }}/">
+                                                <button class="rounded primary button">学习</button>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if loop.index % 4 === 0 or loop.last %}
+                                </div>
+                                {% if not loop.last %}
+                                    <div style="height: 20px;"></div>
+                                    <div class="row">
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    {% endblock %}

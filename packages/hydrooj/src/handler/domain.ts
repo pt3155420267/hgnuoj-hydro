@@ -7,6 +7,7 @@ import {
 import type { DomainDoc } from '../interface';
 import avatar from '../lib/avatar';
 import paginate from '../lib/paginate';
+import { logger } from '../logger';
 import {
     DEFAULT_NODES, PERM, PERMS_BY_FAMILY, PRIV,
 } from '../model/builtin';
@@ -303,6 +304,23 @@ class DomainSearchHandler extends Handler {
     }
 }
 
+class CourseHandler extends Handler {
+    async get() {
+        const domains: any[] = await domain.getMulti({_id:{$ne:'system'}}).toArray()
+        const uDocs: any = {}
+        for await (const d of domains) {
+            uDocs[d.owner] = await user.getById('system',d.owner)
+            d['users'] = (await domain.getMultiUserInDomain(d._id).toArray()).length
+        }
+        this.response.template = 'courses_main.html';
+        this.response.body = {
+            domains,
+            uDocs
+        };
+    }
+}
+
+
 export async function apply() {
     Route('ranking', '/ranking', DomainRankHandler, PERM.PERM_VIEW_RANKING);
     Route('domain_dashboard', '/domain/dashboard', DomainDashboardHandler);
@@ -313,6 +331,7 @@ export async function apply() {
     Route('domain_join_applications', '/domain/join_applications', DomainJoinApplicationsHandler);
     Route('domain_join', '/domain/join', DomainJoinHandler, PRIV.PRIV_USER_PROFILE);
     Route('domain_search', '/domain/search', DomainSearchHandler, PRIV.PRIV_USER_PROFILE);
+    Route('courses', '/courses', CourseHandler);
 }
 
 global.Hydro.handler.domain = apply;

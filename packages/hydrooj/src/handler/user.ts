@@ -452,6 +452,7 @@ class ClassHandler extends Handler {
     }
 }
 
+
 export async function apply() {
     Route('user_login', '/login', UserLoginHandler);
     Route('user_oauth', '/oauth/:type', OauthHandler);

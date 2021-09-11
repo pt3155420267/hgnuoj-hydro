@@ -6,25 +6,18 @@
     <h1 class="section__title" id="domain" data-heading>{{ _('Domain') }}</h1>
   </div>
   <div class="section__body typo">
-    <p>每个用户可以创建自己的域。比如，老师可以为课程创建一个域，然后把题目和学生加入到此域中。再如，可以把域作为团队功能。</p>
-    <p>通过合理的设置角色及其权限，可以把域设为公开或私有。</p>
-    <p>默认域为 system，用户直接访问 {{ name }} 域名就会访问此域，点击 Hydro Logo 会从任意域跳转回 system 域。</p>
-    <p>每个域的题库、讨论、训练以及比赛是独立且自治的。</p>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="compiler" data-heading>{{ _("Compilers' Version and Parameters") }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>{{ name }} 使用 <a href="https://github.com/hydro-dev/Hydro/tree/master/packages/hydrojudge">HydroJudge</a> 进行评测，编译参数如下：</p>
-    {% if languages %}
-      <blockquote><ul>
-        {%- for k, v in languages -%}
-          <li>{{ k }} <pre>{{ v }}</pre></li>
-        {%- endfor -%}
-      </ul></blockquote>
-    {% endif %}
+    <p><b>请将鼠标放置右上角用户名处，点击“我的域”，再点击“创建域”，创建您的域。</b></p>
+    <blockquote class="note">
+      <ol>
+      <li>域的ID是固定的，创建域后无法进行修改。ID是进入您的域的唯一凭证，它将呈现在您的域的url上。</li>
+      <li>域的名称是可以随意更改的，在创建域后如果想要修改名称，请点击<b>管理域-编辑域资料</b>进行修改。</li>
+      <li>您可以通过<b>管理域-管理权限</b>来修改用户在您的域内所拥有的的权限，默认与主域的权限相同。</li>
+      <li>默认域为 system（即主域），用户直接访问 {{ name }} 域名就会访问此域，点击<b> HGNUOJ Logo </b>会从任意域跳转回 system 域。</li>
+      <li>每个域的题库、讨论、训练以及比赛是独立且互不影响的。</li>
+      <li>在创建训练、作业、比赛时，可以通过<b>system:数字题号</b>来使用主域题库中的题。</li>
+      </ol>
+    </blockquote>
+    <p>为防止资源乱用，仅限老师和超级管理员可以创建自己的域。比如，老师可以为课程创建一个域，然后把题目和学生加入到此域中。</p>
   </div>
 </div>
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
@@ -33,15 +26,8 @@
   </div>
   <div class="section__body typo">
     <p>{{ name }} 评测机使用进程的CPU时间计算时间消耗，时间的限定为题目中评测点所指定的时间。</p>
-    <p>{{ name }} 评测机使用进程虚拟内存与物理内存总和计算内存空间消耗。内存空间默认限定为256MiB，题目中特别指明的，限定为题目中评测点所指定的内存空间。</p>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="io" data-heading>{{ _('IO') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>若无特殊说明，{{ name }} 使用标准输入输出（控制台输入输出，屏幕输入输出，STD I/O）。  </p>
+    <p>{{ name }} 评测机使用进程虚拟内存与物理内存总和计算内存空间消耗，限定为题目中评测点所指定的内存空间。</p>
+    <p>是否超时或超出内存限制，取决于单个评测点，而非所有评测点之和。</p>
   </div>
 </div>
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
@@ -95,14 +81,6 @@
 </div>
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
-    <h1 class="section__title" id="training" data-heading>{{ _('Training') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>我们精心挑选了一些题目组成了训练计划。单击导航栏的“训练”即可进入！</p>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
     <h1 class="section__title" id="contest" data-heading>{{ _('Contest') }}</h1>
   </div>
   <div class="section__body typo">
@@ -111,15 +89,6 @@
     <p>OI 赛制排名规则为：总分高的排在前面，总分相等则排名相同。</p>
     <p>ACM/ICPC 赛制所有题目递交后立即评测，以是否通过为准。</p>
     <p>ACM/ICPC 赛制排名规则为：通过题目数多的排在前面，通过题目数相同的做题耗时（含罚时）少的排在前。</p>
-    <p>时间与空间限制以题目说明为准，默认限制参见<a href="#limits">{{ _('Limitations') }}</a>。</p>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="acratio" data-heading>{{ _('Accepted Ratio') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>通过率的影响极其恶劣，{{ name }} 不提供也不承认通过率。</p>
   </div>
 </div>
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
@@ -143,14 +112,6 @@
     <li>2. 越早递交评测的用户代码的评测结果对题目难度影响越大。</li>
     <li>3. 题目的难度由算法计算得出，有可能出现不准确的结果。</li>
     </ul>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="upload" data-heading>{{ _('Dataset Format') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>详见<a href="https://hydro.js.org/docs/testdata.html">配置文档</a></p>
   </div>
 </div>
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
