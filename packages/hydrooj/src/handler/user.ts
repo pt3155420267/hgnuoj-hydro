@@ -14,11 +14,11 @@ import { PERM, PRIV } from '../model/builtin';
 import oauth from '../model/oauth';
 import problem, { ProblemDoc } from '../model/problem';
 import record from '../model/record';
+import student from '../model/stuinfo';
 import * as system from '../model/system';
 import task from '../model/task';
 import token from '../model/token';
 import user from '../model/user';
-import student from '../model/stuinfo';
 import {
     Handler, param, post, Route, Types,
 } from '../service/server';
@@ -435,7 +435,8 @@ class StudentClassHandler extends Handler {
     @param('cls', Types.String)
     async get(domainId: string, cls: string) {
         const udocs = await student.getUserListByClassName(domainId, cls);
-        this.response.template = 'user_stu_class.html';
+        udocs.sort((a, b) => a.stuid - b.stuid);
+        this.response.template = 'stu_class_students.html';
         this.response.body = {
             className: cls,
             udocs,
@@ -447,13 +448,12 @@ class StudentClassHandler extends Handler {
 class ClassHandler extends Handler {
     async get() {
         const cls: any[] = await student.getClassList();
-        this.response.template = 'stu_class.html';
+        this.response.template = 'stu_class_list.html';
         this.response.body = {
             cls,
         };
     }
 }
-
 
 export async function apply() {
     Route('user_login', '/login', UserLoginHandler);
