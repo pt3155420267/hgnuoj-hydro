@@ -24,7 +24,7 @@ class Loader extends nunjucks.Loader {
       return {
         src: global.Hydro.ui.template[name],
         path: name,
-        noCache: false,
+        noCache: true,
       };
     }
     let fullpath = null;
@@ -35,15 +35,19 @@ class Loader extends nunjucks.Loader {
         return {
           src: global.Hydro.ui.template[name],
           path: name,
-          noCache: true,
+          noCache: false,
         };
       }
       throw new Error(`Cannot get template ${name}`);
     }
+    fs.watchFile(p, () => {
+      global.Hydro.ui.template[name] = fs.readFileSync(p, 'utf-8').toString();
+      this.emit('update', name);
+    });
     return {
       src: fs.readFileSync(fullpath, 'utf-8').toString(),
       path: fullpath,
-      noCache: true,
+      noCache: false,
     };
   }
 }
