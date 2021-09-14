@@ -1,13 +1,13 @@
-import LRU from 'lru-cache';
 import { pick } from 'lodash';
-// import { PERM, PRIV } from './builtin';
-import { ArgMethod } from '../utils';
+import LRU from 'lru-cache';
+import { Student, User } from '../interface';
 // import { UserNotFoundError } from '../error';
 import { Logger } from '../logger';
-import db from '../service/db';
-import { Student, User } from '../interface';
 import * as bus from '../service/bus';
+import db from '../service/db';
 import { Value } from '../typeutils';
+// import { PERM, PRIV } from './builtin';
+import { ArgMethod } from '../utils';
 import UserModel from './user';
 
 const coll = db.collection('stu.info');
@@ -117,7 +117,7 @@ class StudentModel {
             const users: User[] = await this.getUserListByClassName(domain, cls._id.toString());
             cls['nAccept'] = users.reduce((val, cur) => val + cur.nAccept, 0);
         }
-        clslist.sort((a, b) => b.nAccept - a.nAccept);
+        clslist.sort((a, b) => b.nAccept - a.nAccept || b.stuNum - a.stuNum || (b._id <= a._id ? 1 : -1));
         return clslist;
     }
 }
