@@ -18,6 +18,7 @@ import * as system from '../model/system';
 import task from '../model/task';
 import token from '../model/token';
 import user from '../model/user';
+import student from '../model/stuinfo';
 import {
     Handler, param, post, Route, Types,
 } from '../service/server';
