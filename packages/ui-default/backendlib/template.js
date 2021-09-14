@@ -24,7 +24,7 @@ class Loader extends nunjucks.Loader {
       return {
         src: global.Hydro.ui.template[name],
         path: name,
-        noCache: true,
+        noCache: false,
       };
     }
     let fullpath = null;
@@ -40,10 +40,12 @@ class Loader extends nunjucks.Loader {
       }
       throw new Error(`Cannot get template ${name}`);
     }
-    fs.watchFile(p, () => {
-      global.Hydro.ui.template[name] = fs.readFileSync(p, 'utf-8').toString();
-      this.emit('update', name);
-    });
+    if (process.env.DEV) {
+      fs.watchFile(p, () => {
+        global.Hydro.ui.template[name] = fs.readFileSync(p, 'utf-8').toString();
+        this.emit('update', name);
+      });
+    }
     return {
       src: fs.readFileSync(fullpath, 'utf-8').toString(),
       path: fullpath,
