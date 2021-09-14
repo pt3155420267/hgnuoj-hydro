@@ -112,15 +112,23 @@ class StudentModel {
         const clslist = await coll.aggregate([
             { $match: { class: { $not: { $in: [null, ''] } } } },
             { $group: { _id: '$class', stuNum: { $sum: 1 } } },
-        ]).toArray();
+        ]).sort({ stuNum: -1, _id: 1 }).toArray();
         for await (const cls of clslist) {
             const users: User[] = await this.getUserListByClassName(domain, cls._id.toString());
             cls['nAccept'] = users.reduce((val, cur) => val + cur.nAccept, 0);
         }
-        clslist.sort((a, b) => b.nAccept - a.nAccept || b.stuNum - a.stuNum || (b._id <= a._id ? 1 : -1));
+        clslist.sort((a, b) => b.nAccept - a.nAccept);
         return clslist;
     }
 }
 
+bus.once('app/started', () => db.ensureIndexes(
+    coll,
+    {
+        key: { stuid: 1 }, name: 'stuid', unique: true, sparse: true,
+    },
+    { key: { name: 1 }, name: 'name', sparse: true },
+    { key: { class: 1, name: 1 }, name: '(class,name)', sparse: true },
+));
 global.Hydro.model.student = StudentModel;
 export default StudentModel;
