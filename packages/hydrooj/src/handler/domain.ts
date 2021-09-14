@@ -58,8 +58,13 @@ class DomainEditHandler extends ManageHandler {
 
     async post(args) {
         const $set = {};
+        const booleanKeys = args.booleanKeys || {};
+        delete args.booleanKeys;
         for (const key in args) {
             if (DOMAIN_SETTINGS_BY_KEY[key]) $set[key] = args[key];
+        }
+        for (const key in booleanKeys) {
+            if (DOMAIN_SETTINGS_BY_KEY[key]) $set[key] = !!args[key];
         }
         await domain.edit(args.domainId, $set);
         this.response.redirect = this.url('domain_dashboard');
@@ -272,20 +277,19 @@ class DomainSearchHandler extends Handler {
 
 class CourseHandler extends Handler {
     async get() {
-        const domains: any[] = await domain.getMulti({_id:{$ne:'system'}}).toArray()
-        const uDocs: any = {}
+        const domains: any[] = await domain.getMulti({ _id: { $ne: 'system' }, publicToCourses: { $eq: true } }).toArray();
+        const uDocs: any = {};
         for await (const d of domains) {
-            uDocs[d.owner] = await user.getById('system',d.owner)
-            d['users'] = (await domain.getMultiUserInDomain(d._id).toArray()).length
+            uDocs[d.owner] = await user.getById('system', d.owner);
+            d['users'] = (await domain.getMultiUserInDomain(d._id).toArray()).length;
         }
         this.response.template = 'courses_main.html';
         this.response.body = {
             domains,
-            uDocs
+            uDocs,
         };
     }
 }
-
 
 export async function apply() {
     Route('ranking', '/ranking', DomainRankHandler, PERM.PERM_VIEW_RANKING);
