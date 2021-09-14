@@ -72,7 +72,7 @@ class User implements _User {
         this._dudoc = dudoc;
         this._salt = udoc.salt;
         this._hash = udoc.hash;
-        this._regip = udoc.regip;
+        this._regip = udoc.ip?.[0] || '';
         this._loginip = udoc.loginip;
         this._files = udoc._files || [];
 
@@ -148,7 +148,7 @@ class UserModel {
         priv: 0,
         regat: new Date('2000-01-01'),
         loginat: new Date('2000-01-01'),
-        regip: '127.0.0.1',
+        ip: ['127.0.0.1'],
         loginip: '127.0.0.1',
     };
 
@@ -225,6 +225,7 @@ class UserModel {
             if (stu && stu._id !== uid) throw new UserAlreadyExistError(studoc['stuid']);
         }
         StudentModel.setById(uid, studoc);
+        if (op.$set?.loginIp) op.$addToSet = { ip: op.$set.loginIp };
         const res = await coll.findOneAndUpdate({ _id: uid }, op, { returnDocument: 'after' });
         deleteUserCache(res.value);
         return res;
@@ -283,7 +284,7 @@ class UserModel {
                 salt,
                 hashType: 'hydro',
                 regat: new Date(),
-                regip,
+                ip: [regip],
                 loginat: new Date(),
                 loginip: regip,
                 priv,
