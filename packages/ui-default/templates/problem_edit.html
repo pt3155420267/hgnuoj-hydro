@@ -48,6 +48,12 @@
               {% endfor %}
             </ul>
           </div>
+          <p style="text-indent: 2em; margin-bottom: 10px;">题目支持使用Markdown语法和LaTeX表达式编写，具体用法请查看<a href="https://markdown.com.cn/basic-syntax/" target="_blank" style="color: #5f9fd6;"><span class="icon icon-link--external"></span> {{ _('Markdown 语法') }}</a>
+            、<a href="https://1024th.github.io/MathJax_Tutorial_CN/#/document?id=%e5%a6%82%e4%bd%95%e6%8f%92%e5%85%a5%e5%85%ac%e5%bc%8f" target="_blank" style="color: #5f9fd6;"><span class="icon icon-link--external"></span> {{ _('LaTeX Expressions') }}</a>
+            。
+          </p>
+          <p style="text-indent: 2em; color: gray;"><i>注：Markdown可简单地代替部分html语句，LaTeX表达式可以表示所有数学符号及公式。</i></p>
+          <br>
           </div>
           <div><textarea data-editor{% if page_name == 'problem_edit' %} autofocus{% endif %} class="textbox auto-resize nojs--hide"></textarea></div>
           <textarea name="content" class="textbox hasjs--hide" data-markdown-upload style="height: 500px">{% if pdoc %}{{ pdoc['content']|toString }}{% else %}{% include 'partials/problem_default.md' %}{% endif %}</textarea>
