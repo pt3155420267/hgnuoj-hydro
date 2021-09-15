@@ -10,8 +10,8 @@
     <p name="messages"></p>
     {{ form.form_textarea({
         columns:null,
-        label:'Users',
-        name:'users'
+        label:'输入学生信息，格式例如：123@abc.com,abc,123456,张三,软工1901,2019310000000，信息用英文逗号隔开，每个学生占一行',
+        name:'students'
         }) }}
     <div class="row"><div class="column">
       <button name="preview" class="rounded primary button">{{ _('Preview') }}</button>

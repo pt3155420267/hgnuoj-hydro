@@ -10,6 +10,7 @@ import { PRIV, STATUS } from '../model/builtin';
 import domain from '../model/domain';
 import record from '../model/record';
 import * as setting from '../model/setting';
+import StudentModel from '../model/stuinfo';
 import * as system from '../model/system';
 import user from '../model/user';
 import * as bus from '../service/bus';
@@ -296,57 +297,24 @@ class SystemStudentImportHandler extends SystemHandler {
 
 class SystemTeacherRegisterHandler extends SystemHandler {
     async get() {
-        this.response.body.users = [];
+        // this.response.body.users = [];
         this.response.body.path.push(['manage_teacher_register']);
         this.response.template = 'manage_teacher_register.html';
     }
 
-    @param('users', Types.Content)
-    @param('draft', Types.Boolean)
-    async post(domainId: string, _users: string, draft: boolean) {
-        const users = _users.split('\n');
-        const udocs = [];
+    @param('teacherName', Types.String, (s) => /^[\u4E00-\u9FA5]{2,4}$/.test(s))
+    @param('teacherID', Types.String)
+    @param('email', Types.String, isEmail)
+    @param('username', Types.String, isUname)
+    @param('password', Types.String, isPassword)
+    async post(domainId: string, teacherName:string, teacherID:string, email:string, username:string, password:string) {
         const messages = [];
-        for (const i in users) {
-            const u = users[i];
-            if (!u.trim()) continue;
-            let [email, username, password, displayName] = u.split(',').map((t) => t.trim());
-            if (!email || !username || !password) [email, username, password, displayName] = u.split('\t').map((t) => t.trim());
-            if (email && username && password) {
-                if (!isEmail(email)) messages.push(`Line ${+i + 1}: Invalid email.`);
-                else if (!isUname(username)) messages.push(`Line ${+i + 1}: Invalid username`);
-                else if (!isPassword(password)) messages.push(`Line ${+i + 1}: Invalid password`);
-                // eslint-disable-next-line no-await-in-loop
-                else if (await user.getByEmail('system', email)) {
-                    messages.push(`Line ${+i + 1}: Email ${email} already exists.`);
-                    // eslint-disable-next-line no-await-in-loop
-                } else if (await user.getByUname('system', username)) {
-                    messages.push(`Line ${+i + 1}: Username ${username} already exists.`);
-                } else {
-                    udocs.push({
-                        email, username, password, displayName,
-                    });
-                }
-            } else messages.push(`Line ${+i + 1}: Input invalid.`);
-        }
-        messages.push(`${udocs.length} users found.`);
-        if (!draft) {
-            for (const {
-                email, username, password, displayName,
-            } of udocs) {
-                try {
-                    // eslint-disable-next-line no-await-in-loop
-                    const uid = await user.create(email, username, password);
-                    // eslint-disable-next-line no-await-in-loop
-                    if (displayName) await domain.setUserInDomain(domainId, uid, { displayName });
-                } catch (e) {
-                    messages.push(e.message);
-                }
-            }
-        }
-        this.response.body.path.push(['manage_user_import']);
-        this.response.body.users = udocs;
+        const uid = await user.create(email, username, password);
+        await StudentModel.create(uid, '老师', teacherName, teacherID);
+        messages.push('注册成功！');
+        this.response.body.path.push(['manage_teacher_register']);
         this.response.body.messages = messages;
+        this.back();
     }
 }
 
