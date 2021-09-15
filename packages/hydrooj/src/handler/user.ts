@@ -436,10 +436,17 @@ class StudentClassHandler extends Handler {
     async get(domainId: string, cls: string) {
         const udocs = await student.getUserListByClassName(domainId, cls);
         udocs.sort((a, b) => a.stuid - b.stuid);
+        const sdocs_temp = await Promise.all(udocs.map(async ({ _id }) => {
+            const { updateAt } = await token.getMostRecentSessionByUid(_id) || { updateAt: null };
+            return { _id, updateAt };
+        }));
+        const sdocs = {};
+        for (const sdoc of sdocs_temp) sdocs[sdoc['_id']] = sdoc['updateAt'];
         this.response.template = 'stu_class_students.html';
         this.response.body = {
             className: cls,
             udocs,
+            sdocs,
         };
         this.extraTitleContent = cls;
     }

@@ -64,7 +64,11 @@
                                             <td class="col--gender">{{ model.builtin.USER_GENDER_ICONS[udoc.gender] }}</td>
                                             <td class="col--rp">{{ udoc.rp|default(1500)|round(0) }}</td>
                                             <td class="col--ac">{{ udoc['nAccept'] }}</td>
-                                            <td class="col--lastlogin">{{ datetimeSpan(udoc['loginat'])|safe }}</td>
+                                            {% if sdocs[udoc['_id']] %}
+                                            <td class="col--lastlogin">{{ datetimeSpan(sdocs[udoc['_id']])|safe }}</td>
+                                            {% else %}
+                                            <td class="col--lastlogin">离线</td>
+                                            {% endif %}
                                             <td class="col--bio">{{ udoc.bio|default('')|truncate(64, true)|markdownInline|safe }}</td>
                                         </tr>
                                     {%- endfor -%}
