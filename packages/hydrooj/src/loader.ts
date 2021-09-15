@@ -30,10 +30,21 @@ export function addon(addonPath: string, prepend = false) {
             const packagejson = require.resolve(`${addonPath}/package.json`);
             const modulePath = path.dirname(packagejson);
             const publicPath = path.resolve(modulePath, 'public');
-            if (fs.existsSync(publicPath)) global.publicDirs[prepend ? 'push' : 'unshift'](publicPath);
+            if (fs.existsSync(publicPath)) {
+                global.publicDirs[prepend ? 'push' : 'unshift'](publicPath);
+                const targets = fs.readdirSync(publicPath);
+                for (const target of targets) {
+                    if (global.Hydro.ui.manifest[target] && !prepend) {
+                        global.Hydro.ui.manifest[target] = publicPath;
+                    } else if (!global.Hydro.ui.manifest[target]) {
+                        global.Hydro.ui.manifest[target] = publicPath;
+                    }
+                }
+            }
             global.addons[prepend ? 'unshift' : 'push'](modulePath);
         } catch (e) {
             logger.error(`Addon not found: ${addonPath}`);
+            logger.error(e);
         }
     } else logger.error(`Addon not found: ${addonPath}`);
 }

@@ -36,7 +36,9 @@ function runWebpack({
       if (err) {
         console.error(err.stack || err);
         if (err.details) console.error(err.details);
+        if (!watch && (!stats || stats.hasErrors())) process.exitCode = 1;
         reject(err);
+        return;
       }
       if (argv.options.detail) console.log(stats.toString());
       if (!watch && (!stats || stats.hasErrors())) process.exitCode = 1;
@@ -50,7 +52,7 @@ function runWebpack({
 async function runGulp() {
   function handleError(err) {
     log(chalk.red('Error: %s'), chalk.reset(err.toString() + err.stack));
-    if (err) process.exit(1);
+    process.exit(1);
   }
   const gulpTasks = gulpConfig({ production: true, errorHandler: handleError });
   return new Promise((resolve) => {
@@ -76,6 +78,9 @@ async function main() {
   await runWebpack(argv.options);
   if (argv.options.production) {
     fs.removeSync('public/vditor/dist/js/mathjax');
+    fs.removeSync('public/vditor/dist/js/echarts');
+    fs.removeSync('public/vditor/dist/js/graphviz');
+    fs.removeSync('public/vditor/dist/js/mermaid');
     fs.removeSync('public/vditor/dist/js/abcjs');
   }
   process.chdir(dir);
