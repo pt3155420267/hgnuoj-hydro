@@ -38,6 +38,11 @@
                                     </div>
                                 </div>
                             </div>
+                            {% if loop.index % 4 and loop.last %}
+                                {% for i in range(0, 4 - (loop.index % 4)) -%}
+                                    <div class="medium-3 columns"></div>
+                                {%- endfor %}
+                            {% endif %}
                             {% if loop.index % 4 === 0 or loop.last %}
                                 </div>
                                 {% if not loop.last %}
