@@ -891,3 +891,5 @@ Stu_ClassName: 专业班级
 Reg_Stu_ClassName: 专业班级(例如：软工1901、计算机2006)
 Stu_RealName: 姓名
 reg_stuwarn: 请使用真实学生信息填写！
+manage_student_import: 学生批量导入
+manage_teacher_register: 教师注册

@@ -246,50 +246,66 @@ class SystemStudentImportHandler extends SystemHandler {
         this.response.template = 'manage_stu_import.html';
     }
 
-    @param('users', Types.Content)
+    @param('students', Types.Content)
     @param('draft', Types.Boolean)
-    async post(domainId: string, _users: string, draft: boolean) {
-        const users = _users.split('\n');
+    async post(domainId: string, students: string, draft: boolean) {
+        const users = students.split('\n');
         const udocs = [];
         const messages = [];
         for (const i in users) {
             const u = users[i];
             if (!u.trim()) continue;
-            let [email, username, password, displayName] = u.split(',').map((t) => t.trim());
-            if (!email || !username || !password) [email, username, password, displayName] = u.split('\t').map((t) => t.trim());
+            let [email, username, password, realname, classname, stuid] = u.split(',').map((t) => t.trim());
+            if (!email || !username || !password) [email, username, password, realname, classname, stuid] = u.split('\t').map((t) => t.trim());
             if (email && username && password) {
                 if (!isEmail(email)) messages.push(`Line ${+i + 1}: Invalid email.`);
                 else if (!isUname(username)) messages.push(`Line ${+i + 1}: Invalid username`);
                 else if (!isPassword(password)) messages.push(`Line ${+i + 1}: Invalid password`);
+                else if (!/^[\u4E00-\u9FA5]{2,4}$/.test(realname)) messages.push(`Line ${+i + 1}: Invalid realname`);
+                else if (!/^[\u4E00-\u9FA5]{2,4}[1-2][0-9]{3}$/.test(classname)) messages.push(`Line ${+i + 1}: Invalid classname`);
+                else if (!/^2\d{7}$|2\d{12}$/.test(stuid)) messages.push(`Line ${+i + 1}: Invalid realname`);
                 // eslint-disable-next-line no-await-in-loop
                 else if (await user.getByEmail('system', email)) {
                     messages.push(`Line ${+i + 1}: Email ${email} already exists.`);
                     // eslint-disable-next-line no-await-in-loop
+                } else if (await StudentModel.getStuInfoByStuId(stuid)) {
+                    messages.push(`Line ${+i + 1}: stuid ${stuid} already been registered.`);
+                // eslint-disable-next-line no-await-in-loop
                 } else if (await user.getByUname('system', username)) {
                     messages.push(`Line ${+i + 1}: Username ${username} already exists.`);
                 } else {
                     udocs.push({
-                        email, username, password, displayName,
+                        email, username, password, realname, classname, stuid,
                     });
                 }
             } else messages.push(`Line ${+i + 1}: Input invalid.`);
         }
-        messages.push(`${udocs.length} users found.`);
+        messages.push(`${udocs.length} students found.`);
         if (!draft) {
-            for (const {
-                email, username, password, displayName,
-            } of udocs) {
+            await Promise.all(udocs.map(async ({
+                email, username, password, realname, classname, stuid,
+            }) => {
                 try {
-                    // eslint-disable-next-line no-await-in-loop
                     const uid = await user.create(email, username, password);
-                    // eslint-disable-next-line no-await-in-loop
-                    if (displayName) await domain.setUserInDomain(domainId, uid, { displayName });
+                    await StudentModel.create(uid, classname, realname, stuid);
                 } catch (e) {
                     messages.push(e.message);
                 }
-            }
+            }));
+            // for (const {
+            //     email, username, password, realname, classname, stuid,
+            // } of udocs) {
+            //     try {
+            //         // eslint-disable-next-line no-await-in-loop
+            //         const uid = await user.create(email, username, password);
+            //         // eslint-disable-next-line no-await-in-loop
+            //         await StudentModel.create(uid, classname, realname, stuid);
+            //     } catch (e) {
+            //         messages.push(e.message);
+            //     }
+            // }
         }
-        this.response.body.path.push(['manage_user_import']);
+        this.response.body.path.push(['manage_student_import']);
         this.response.body.users = udocs;
         this.response.body.messages = messages;
     }
