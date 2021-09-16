@@ -12,9 +12,7 @@
       {% elif model.builtin.STATUS_TEXTS[rdoc['status']] == 'Time Exceeded' %}
       <blockquote class="note">若评测出现Time Exceeded，表明程序未在规定时间内运行结束，请检查代码有无错误或改写时间复杂度更低的算法。</blockquote>
       {% elif model.builtin.STATUS_TEXTS[rdoc['status']] == 'Waiting' %}
-      <blockquote class="note">请稍等，评测排队中...若长时间Waiting且刷新无变化，请向管理员反馈。</blockquote>
-      {% elif model.builtin.STATUS_TEXTS[rdoc['status']] == 'Accepted' %}
-      <blockquote class="note">恭喜你，评测通过！</blockquote>
+      <blockquote class="note">评测排队中，请稍等...若长时间Waiting且刷新无变化，请向管理员反馈。</blockquote>
       {% endif %}
       <span class="icon record-status--icon {{ model.builtin.STATUS_CODES[rdoc['status']] }}"></span>
       <span style="color: {{ utils.status.getScoreColor(rdoc.score|default(0)) }}">{{ rdoc.score|default(0) }}</span>
