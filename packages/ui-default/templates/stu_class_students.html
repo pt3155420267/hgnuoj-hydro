@@ -23,31 +23,23 @@
                             <table class="data-table">
                                 <colgroup>
                                     <col class="col--rank">
-                                    {% if handler
-                                        .user
-                                        .hasPriv(PRIV.PRIV_USER_PROFILE) %}
-                                        <col class="col--stuid">
-                                    {% endif %}
+                                    <col class="col--stuid">
                                     <col class="col--user">
                                     <col class="col--gender">
                                     <col class="col--rp">
                                     <col class="col--ac">
-                                    <col class="col--lastlogin">
+                                    <col class="col--lastactive">
                                     <col class="col--bio">
                                 </colgroup>
                                 <thead>
                                     <tr>
                                         <th class="col--rank">{{ _('Rank') }}</th>
-                                        {% if handler
-                                            .user
-                                            .hasPriv(PRIV.PRIV_USER_PROFILE) %}
-                                            <th class="col--stuid">{{ _('Stu_ID') }}</th>
-                                        {% endif %}
+                                        <th class="col--stuid">{{ _('Stu_ID') }}</th>
                                         <th class="col--user">{{ _('Username') }}</th>
                                         <th class="col--gender">{{ _('Gender') }}</th>
                                         <th class="col--rp">{{ _('RP') }}</th>
                                         <th class="col--ac">AC数量</th>
-                                        <th class="col--lastlogin">{{ _('last login at') }}</th>
+                                        <th class="col--lastactive">{{ _('last active at') }}</th>
                                         <th class="col--bio">{{ _('Bio') }}</th>
                                     </tr>
                                 </thead>
@@ -55,20 +47,18 @@
                                     {%- for udoc in udocs -%}
                                         <tr>
                                             <td class="col--rank">{{ loop.index }}</td>
-                                            {% if handler
-                                                .user
-                                                .hasPriv(PRIV.PRIV_USER_PROFILE) %}
-                                                <td class="col--stuid">{{ udoc['stuid'] }}</td>
-                                            {% endif %}
-                                            <td class="col--user">{{ user.render_inline(udoc,class=false) }}</td>
+                                            <td class="col--stuid">{{ udoc['stuid'] }}</td>
+                                            <td class="col--user">{{ user.render_inline(udoc,classname=false) }}</td>
                                             <td class="col--gender">{{ model.builtin.USER_GENDER_ICONS[udoc.gender] }}</td>
                                             <td class="col--rp">{{ udoc.rp|default(1500)|round(0) }}</td>
                                             <td class="col--ac">{{ udoc['nAccept'] }}</td>
+                                            <td class="col--lastactive">
                                             {% if sdocs[udoc['_id']] %}
-                                            <td class="col--lastlogin">{{ datetimeSpan(sdocs[udoc['_id']])|safe }}</td>
+                                            {{ datetimeSpan(sdocs[udoc['_id']])|safe }}
                                             {% else %}
-                                            <td class="col--lastlogin">离线</td>
+                                            {{ datetimeSpan(udoc['loginat'])|safe }}
                                             {% endif %}
+                                            </td>
                                             <td class="col--bio">{{ udoc.bio|default('')|truncate(64, true)|markdownInline|safe }}</td>
                                         </tr>
                                     {%- endfor -%}
