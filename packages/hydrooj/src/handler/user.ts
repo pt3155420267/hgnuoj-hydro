@@ -164,7 +164,7 @@ class UserRegisterWithCodeHandler extends Handler {
     // 学生信息
     @param('stuname', Types.String, (s) => /^[\u4E00-\u9FA5]{2,4}$/.test(s))
     @param('stuid', Types.String, (s) => /^2\d{7}$|2\d{12}$/.test(s))
-    @param('stuclass', Types.String, (s) => /^[\u4E00-\u9FA5]{2,3}[1-2][0-9]{3}$/.test(s))
+    @param('stuclass', Types.String, (s) => /^[\u4E00-\u9FA5]{2,4}[1-2][0-9]{3}$/.test(s))
     async post(
         domainId: string,
         password: string,
@@ -179,6 +179,7 @@ class UserRegisterWithCodeHandler extends Handler {
         const tdoc = await token.get(code, token.TYPE_REGISTRATION);
         if (!tdoc || (!tdoc.mail && !tdoc.phone)) throw new InvalidTokenError(token.TYPE_REGISTRATION, code);
         if (password !== verify) throw new VerifyPasswordError();
+        if (await student.getStuInfoByStuId(stuid)) throw new UserAlreadyExistError(stuid);
         if (tdoc.phone) tdoc.mail = `${tdoc.phone}@hydro.local`;
         const uid = await user.create(
             tdoc.mail,
@@ -188,7 +189,6 @@ class UserRegisterWithCodeHandler extends Handler {
             this.request.ip,
         );
         // 插入学生信息
-        if (await student.getStuInfoByStuId(stuid)) throw new UserAlreadyExistError(stuid);
         await student.create(uid, stuclass, stuname, stuid);
         await token.del(code, token.TYPE_REGISTRATION);
         const [id, domain] = tdoc.mail.split('@');
