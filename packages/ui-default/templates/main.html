@@ -43,6 +43,14 @@
       {% endfor %}
     </div>
     <div class="large-3 columns">
+      {% if domain['_id'] !== 'system' %}
+        <div class="section side">
+          <div class="section__header">
+            <h1 class="section__title"><strong>当前域：{{ domain['name'] }}</strong></h1>
+            <div class="section__body"></div>
+          </div>
+        </div>
+      {% endif %}
       <div class="section side nojs--hide">
         <div class="section__header">
           <h1 class="section__title">{{ _('Hitokoto') }}</h1>
