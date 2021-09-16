@@ -1,7 +1,7 @@
 import { inspect } from 'util';
 import * as yaml from 'js-yaml';
 import * as check from '../check';
-import { HydroError, ValidationError } from '../error';
+import { BadRequestError, HydroError, ValidationError } from '../error';
 import {
     isEmail, isPassword, isUname, validate,
 } from '../lib/validator';
@@ -293,18 +293,6 @@ class SystemStudentImportHandler extends SystemHandler {
                     messages.push(e.message);
                 }
             }));
-            // for (const {
-            //     email, username, password, realname, classname, stuid,
-            // } of udocs) {
-            //     try {
-            //         // eslint-disable-next-line no-await-in-loop
-            //         const uid = await user.create(email, username, password);
-            //         // eslint-disable-next-line no-await-in-loop
-            //         await StudentModel.create(uid, classname, realname, stuid);
-            //     } catch (e) {
-            //         messages.push(e.message);
-            //     }
-            // }
         }
         this.response.body.path.push(['manage_student_import']);
         this.response.body.users = udocs;
@@ -325,12 +313,14 @@ class SystemTeacherRegisterHandler extends SystemHandler {
     @param('username', Types.String, isUname)
     @param('password', Types.String, isPassword)
     async post(domainId: string, teacherName:string, teacherID:string, email:string, username:string, password:string) {
-        const messages = [];
+        if (
+            await user.getByEmail('system', email)
+            || await user.getByUname('system', username)
+            || await StudentModel.getStuInfoByStuId(teacherID)
+        ) throw new BadRequestError('该用户已被注册！');
         const uid = await user.create(email, username, password);
         await StudentModel.create(uid, '老师', teacherName, teacherID);
-        messages.push('注册成功！');
         this.response.body.path.push(['manage_teacher_register']);
-        this.response.body.messages = messages;
         this.back();
     }
 }
@@ -349,13 +339,13 @@ class SystemChangeUserPasswordHandler extends SystemHandler {
     @param('stuid', Types.String, true)
     async post(domainId: string, password:string, confirmPassword:string, userID?:number, email?:string, username?:string, stuid?:string) {
         let udoc = null;
-        if (password !== confirmPassword) throw new HydroError('密码不一致！');
+        if (password !== confirmPassword) throw new BadRequestError('密码不一致！');
         if (userID) udoc = await UserModel.getById('system', userID);
         else if (email) udoc = await UserModel.getByEmail('system', email);
         else if (username) udoc = await UserModel.getByUname('system', username);
         else if (stuid) udoc = await UserModel.getById('system', (await StudentModel.getStuInfoByStuId(stuid))._id);
-        else throw new HydroError('请填写用户信息！');
-        if (!udoc) throw new HydroError('用户不存在！');
+        else throw new BadRequestError('请填写用户信息！');
+        if (!udoc) throw new BadRequestError('用户不存在！');
         await UserModel.setPassword(udoc._id, password);
         this.response.body.path.push(['manage_user_changepassword']);
         this.back();
