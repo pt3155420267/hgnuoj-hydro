@@ -8,12 +8,30 @@
         <div class="section__body typo">
           {{ tdoc['content'] }}
         </div>
-        <div class="section__body typo">
-          {{ tdoc.description|default('')|markdown|safe }}
-        </div>
-      </div>
-      <div class="section">
-        {% if not tsdoc.enroll %}
+      {% endif %}
+      {%- for node in tdoc['dag'] -%}
+        <div data-heading-extract-to="#menu-item-training_detail" class="training__section {% if nsdict[node['_id']]['isDone'] %}done{% elif nsdict[node['_id']]['isProgress'] %}progress{% elif nsdict[node['_id']]['isOpen'] %}open{% else %}invalid{% endif %}  {% if nsdict[node['_id']]['isProgress'] or nsdict[node['_id']]['isOpen'] %}expanded{% else %}collapsed{% endif %}">
+          <div class="section__header clearfix">
+            <div class="float-left">
+              <h1 data-heading id="node-{{ node._id }}" class="section__title">{{ _('Section') }} {{ node['_id'] }}. {{ node['title'].split('\n')[0] }}</h1>
+              {% if node['title'].split('\n')[1] %}<h2 class="section__title">{{ node['title'].split('\n')[1] }}</h2>{% endif %}
+            </div>
+            <div class="float-right">
+              <h1 class="section__title training-section-status--text {% if nsdict[node['_id']]['isDone'] %}done{% elif nsdict[node['_id']]['isProgress'] %}progress{% elif nsdict[node['_id']]['isOpen'] %}open{% else %}invalid{% endif %}">
+                <span class="icon training-section-status--icon {% if nsdict[node['_id']]['isDone'] %}done{% elif nsdict[node['_id']]['isProgress'] %}progress{% elif nsdict[node['_id']]['isOpen'] %}open{% else %}invalid{% endif %}"></span>
+                {% if nsdict[node['_id']]['isDone'] %}
+                  {{ _('Completed') }}
+                {% elif nsdict[node['_id']]['isProgress'] %}
+                  {{ _('In Progress') }}
+                {% elif nsdict[node['_id']]['isOpen'] %}
+                  {{ _('Open') }}
+                {% else %}
+                  {{ _('Invalid') }}
+                {% endif %}
+              </h1>
+            </div>
+          </div>
+          {% if tsdoc.enroll %}
           <div class="section__body">
             <blockquote class="typo warn">
               <p>{{ _('page.training_detail.invalid_when_not_enrolled') }}</p>
@@ -172,9 +190,10 @@
               </div>
             </div>
           </div>
-        {%- endfor -%}
-        <div class="section__body">&nbsp;<!-- space placeholder --></div>
-      </div>
+          {% endif %}
+        </div>
+      {%- endfor -%}
+      <div class="section__body">&nbsp;<!-- space placeholder --></div>
     </div>
     <div class="medium-3 columns">
       <div class="section side">

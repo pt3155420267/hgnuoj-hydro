@@ -1,4 +1,4 @@
-{% if trdocs.length %}
+{% if tdocs.length %}
   <div class="section page--training_main">
     <div class="section__header">
       <h1 class="section__title">{{ _('Training') }}</h1>
@@ -9,7 +9,7 @@
           <div class="media">
             <div class="media__left middle">
               <div class="training__participants numbox">
-                <div class="numbox__num large">{{ tdoc['enroll']|default(0) }}</div>
+                <div class="numbox__num large">{{ tdoc.attend|default(0) }}</div>
                 <div class="numbox__text">{{ _('Enrolled') }}</div>
               </div>
             </div>
