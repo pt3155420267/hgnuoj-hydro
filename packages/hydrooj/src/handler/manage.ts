@@ -1,19 +1,18 @@
 import { inspect } from 'util';
 import * as yaml from 'js-yaml';
 import * as check from '../check';
-import { BadRequestError, HydroError, ValidationError } from '../error';
+import { BadRequestError, ValidationError } from '../error';
 import {
     isEmail, isPassword, isUname, validate,
 } from '../lib/validator';
 import { Logger } from '../logger';
-import { PRIV, STATUS } from '../model/builtin';
+import { PERM, PRIV, STATUS } from '../model/builtin';
 import domain from '../model/domain';
 import record from '../model/record';
 import * as setting from '../model/setting';
 import StudentModel from '../model/stuinfo';
 import * as system from '../model/system';
 import user from '../model/user';
-import UserModel from '../model/user';
 import * as bus from '../service/bus';
 import {
     Connection, ConnectionHandler, Handler,
@@ -319,6 +318,16 @@ class SystemTeacherRegisterHandler extends SystemHandler {
             || await StudentModel.getStuInfoByStuId(teacherID)
         ) throw new BadRequestError('该用户已被注册！');
         const uid = await user.create(email, username, password);
+        const udoc = await user.getById('system', uid);
+        const addPriv:number = Math.sum(
+            PRIV.PRIV_CREATE_DOMAIN,
+            PRIV.PRIV_VIEW_JUDGE_STATISTICS,
+            PRIV.PRIV_MOD_BADGE,
+            PRIV.PRIV_READ_RECORD_CODE,
+            PRIV.PRIV_REJUDGE,
+            PRIV.PRIV_VIEW_HIDDEN_RECORD,
+        );
+        user.setPriv(uid, udoc.priv + addPriv);
         await StudentModel.create(uid, '老师', teacherName, teacherID);
         this.response.body.path.push(['manage_teacher_register']);
         this.back();
@@ -340,13 +349,13 @@ class SystemChangeUserPasswordHandler extends SystemHandler {
     async post(domainId: string, password:string, confirmPassword:string, userID?:number, email?:string, username?:string, stuid?:string) {
         let udoc = null;
         if (password !== confirmPassword) throw new BadRequestError('密码不一致！');
-        if (userID) udoc = await UserModel.getById('system', userID);
-        else if (email) udoc = await UserModel.getByEmail('system', email);
-        else if (username) udoc = await UserModel.getByUname('system', username);
-        else if (stuid) udoc = await UserModel.getById('system', (await StudentModel.getStuInfoByStuId(stuid))._id);
+        if (userID) udoc = await user.getById('system', userID);
+        else if (email) udoc = await user.getByEmail('system', email);
+        else if (username) udoc = await user.getByUname('system', username);
+        else if (stuid) udoc = await user.getById('system', (await StudentModel.getStuInfoByStuId(stuid))._id);
         else throw new BadRequestError('请填写用户信息！');
         if (!udoc) throw new BadRequestError('用户不存在！');
-        await UserModel.setPassword(udoc._id, password);
+        await user.setPassword(udoc._id, password);
         this.response.body.path.push(['manage_user_changepassword']);
         this.back();
     }
