@@ -362,6 +362,8 @@ class HomeworkEditHandler extends Handler {
             tid = await contest.add(domainId, title, content, this.user._id,
                 'homework', beginAt.toDate(), endAt.toDate(), pids, rated,
                 { penaltySince: penaltySince.toDate(), penaltyRules }, document.TYPE_HOMEWORK);
+            // 创建作业后自动认领作业
+            await contest.attend(domainId, tid, this.user._id, document.TYPE_HOMEWORK);
         } else {
             await contest.edit(domainId, tid, {
                 title, content, beginAt: beginAt.toDate(), endAt: endAt.toDate(), pids, penaltySince: penaltySince.toDate(), penaltyRules, rated,
