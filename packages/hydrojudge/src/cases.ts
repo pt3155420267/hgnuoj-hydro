@@ -20,12 +20,12 @@ interface Re1 extends Re0 {
 
 const RE0: Re0[] = [
     {
-        reg: /^([^\d]*)(\d+).(in|txt)$/,
+        reg: /^(.+).(in)$/,
         output: [
-            (a) => `${a[1] + a[2]}.out`,
-            (a) => `${a[1] + a[2]}.ans`,
-            (a) => `${a[1] + a[2]}.out`.replace(/input/g, 'output'),
-            (a) => `${a[1] + a[2]}.txt`.replace(/input/g, 'output'),
+            (a) => `${a[1]}.out`,
+            (a) => `${a[1]}.ans`,
+            (a) => `${a[1]}.out`.replace(/input/g, 'output'),
+            (a) => `${a[1]}.txt`.replace(/input/g, 'output'),
         ],
         id: (a) => +a[2],
     },
