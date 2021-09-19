@@ -45,6 +45,7 @@ export interface SystemKeys {
     'user.quota': number,
 }
 
+type Validator = (value: any) => boolean;
 export interface Setting {
     family: string,
     key: string,
@@ -55,6 +56,7 @@ export interface Setting {
     name: string,
     desc: string,
     flag: number,
+    validator?: Validator
 }
 
 export interface Udoc extends Dictionary<any> {
