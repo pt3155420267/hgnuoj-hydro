@@ -50,5 +50,9 @@
         "semver": "^7.3.5",
         "typedoc": "^0.22.2",
         "typescript": "4.4.2"
+    },
+    "dependencies": {
+        "hydro-pdf-preview": "^1.0.2",
+        "hydro-prom-exporter": "^1.0.2"
     }
 }
