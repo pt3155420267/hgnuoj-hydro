@@ -27,6 +27,7 @@ import * as bus from '../service/bus';
 import {
     Connection, ConnectionHandler, Handler, param, Route, Types,
 } from '../service/server';
+import { sleep } from '../utils';
 
 const { geoip, useragent } = global.Hydro.lib;
 
