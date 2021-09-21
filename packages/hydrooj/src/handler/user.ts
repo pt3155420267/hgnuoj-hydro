@@ -2,18 +2,15 @@ import moment from 'moment-timezone';
 import {
     BlacklistedError, InvalidTokenError, LoginError,
     SystemError, UserAlreadyExistError, UserFacingError,
-    UserNotFoundError, VerifyPasswordError,
+    UserNotFoundError, ValidationError, VerifyPasswordError,
 } from '../error';
 import { User } from '../interface';
 import avatar from '../lib/avatar';
 import { sendMail } from '../lib/mail';
-import paginate from '../lib/paginate';
 import { isEmail, isPassword, isUname } from '../lib/validator';
 import BlackListModel from '../model/blacklist';
 import { PERM, PRIV } from '../model/builtin';
 import oauth from '../model/oauth';
-import problem, { ProblemDoc } from '../model/problem';
-import record from '../model/record';
 import student from '../model/stuinfo';
 import * as system from '../model/system';
 import task from '../model/task';
@@ -143,11 +140,8 @@ export class UserRegisterHandler extends Handler {
                 });
                 await sendMail(mail, 'Sign Up', 'user_register_mail', m);
                 this.response.template = 'user_register_mail_sent.html';
-            } else {
-                this.response.redirect = this.url('user_register_with_code', {
-                    code: t[0],
-                });
-            }
+                this.response.body = { mail };
+            } else this.response.redirect = this.url('user_register_with_code', { code: t[0] });
         } else if (phoneNumber) {
             if (!global.Hydro.lib.sendSms) throw new SystemError('Cannot send sms');
             await this.limitRate('send_sms', 60, 3);
@@ -159,7 +153,7 @@ export class UserRegisterHandler extends Handler {
             );
             await global.Hydro.lib.sendSms(phoneNumber, 'register', t[0]);
             this.response.template = 'user_register_sms.html';
-        }
+        } else throw new ValidationError('mail');
     }
 }
 
@@ -279,51 +273,21 @@ class UserDetailHandler extends Handler {
     async get(domainId: string, uid: number) {
         if (uid === 0) throw new UserNotFoundError(0);
         const isSelfProfile = this.user._id === uid;
-        const udoc = await user.getById(domainId, uid);
-        if (!udoc) throw new UserNotFoundError(uid);
-        const [sdoc, rdocs, [pdocs, pcount]] = await Promise.all([
+        const [udoc, sdoc] = await Promise.all([
+            user.getById(domainId, uid),
             token.getMostRecentSessionByUid(uid),
-            record.getByUid(domainId, uid, 30),
-            this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)
-                ? paginate(problem.getMulti(domainId, { owner: uid }), 1, 100)
-                : ([[], 0, 0] as [ProblemDoc[], number, number]),
         ]);
-        const pdict = this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)
-            ? await problem.getList(
-                domainId,
-                rdocs.map((rdoc) => rdoc.pid),
-                this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN)
-						|| this.user._id,
-                false,
-			  )
-            : Object.fromEntries(
-                rdocs.map((rdoc) => [
-                    rdoc.pid,
-                    { ...problem.default, pid: rdoc.pid },
-                ]),
-            );
+        if (!udoc) throw new UserNotFoundError(uid);
         // Remove sensitive data
         if (!isSelfProfile && sdoc) {
             sdoc.createIp = '';
             sdoc.updateIp = '';
             sdoc._id = '';
         }
-        const path = [
-            ['Hydro', 'homepage'],
-            ['user_detail', 'user_detail', { uid }],
-        ];
         const studoc = await student.getStuInfoById(uid);
         this.response.template = 'user_detail.html';
         this.response.body = {
-            isSelfProfile,
-            udoc,
-            sdoc,
-            rdocs,
-            pdocs,
-            pcount,
-            pdict,
-            path,
-            studoc,
+            isSelfProfile, udoc, sdoc, studoc,
         };
         this.extraTitleContent = udoc.uname;
     }
@@ -459,24 +423,8 @@ export async function apply() {
     Route('user_login', '/login', UserLoginHandler);
     Route('user_oauth', '/oauth/:type', OauthHandler);
     Route('user_oauth_callback', '/oauth/:type/callback', OauthCallbackHandler);
-    Route(
-        'user_register',
-        '/register',
-        UserRegisterHandler,
-        PRIV.PRIV_REGISTER_USER,
-    );
-    Route(
-        'user_register_without_code',
-        '/register/code',
-        UserRegisterWithCodeHandler,
-        PRIV.PRIV_REGISTER_USER,
-    );
-    Route(
-        'user_register_with_code',
-        '/register/:code',
-        UserRegisterWithCodeHandler,
-        PRIV.PRIV_REGISTER_USER,
-    );
+    Route('user_register', '/register', UserRegisterHandler, PRIV.PRIV_REGISTER_USER);
+    Route('user_register_with_code', '/register/:code', UserRegisterWithCodeHandler, PRIV.PRIV_REGISTER_USER);
     Route('user_logout', '/logout', UserLogoutHandler, PRIV.PRIV_USER_PROFILE);
     Route('user_lostpass', '/lostpass', UserLostPassHandler);
     Route('user_lostpass_with_code', '/lostpass/:code', UserLostPassWithCodeHandler);
