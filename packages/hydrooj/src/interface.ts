@@ -170,12 +170,14 @@ export interface ProblemConfigFile {
     judge_extra_files?: string[];
     detail?: boolean;
     outputs?: [string, number][];
+    redirect?: string;
     cases?: TestCaseConfig[];
     subtasks?: SubtaskConfig[];
     langs?: string[];
 }
 
 export interface ProblemConfig {
+    redirect?: [string, string];
     count: number;
     memoryMax: number;
     memoryMin: number;
