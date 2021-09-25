@@ -225,16 +225,11 @@ function set(s: Setting, key: string, value: any) {
 class HomeSettingsHandler extends Handler {
     @param('category', Types.Name)
     async get(domainId: string, category: string) {
-        const path = [
-            ['Hydro', 'homepage'],
-            [`home_${category}`, null],
-        ];
         this.response.template = 'home_settings.html';
         this.response.body = {
             category,
             page_name: `home_${category}`,
             current: this.user,
-            path,
         };
         if (category === 'preference') {
             this.response.body.settings = setting.PREFERENCE_SETTINGS;
@@ -282,10 +277,6 @@ class UserChangemailWithCodeHandler extends Handler {
 
 class HomeDomainHandler extends Handler {
     async get() {
-        const path = [
-            ['Hydro', 'homepage'],
-            ['home_domain', null],
-        ];
         let ddocs: DomainDoc[] = [];
         let dudict: Record<string, DomainDoc> = {};
         if (!this.user.hasPriv(PRIV.PRIV_VIEW_ALL_DOMAIN)) {
@@ -311,20 +302,12 @@ class HomeDomainHandler extends Handler {
                 || udoc.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN);
         }
         this.response.template = 'home_domain.html';
-        this.response.body = {
-            ddocs, dudict, canManage, path,
-        };
+        this.response.body = { ddocs, dudict, canManage };
     }
 }
 
 class HomeDomainCreateHandler extends Handler {
     async get() {
-        this.response.body = {
-            path: [
-                ['Hydro', 'homepage'],
-                ['domain_create', null],
-            ],
-        };
         this.response.template = 'domain_create.html';
     }
 
