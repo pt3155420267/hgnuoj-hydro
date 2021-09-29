@@ -98,7 +98,7 @@ class HomeHandler extends Handler {
 
     async getProblems(domainId: string, limit = 5) {
         if (this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) {
-            const pdocs = await problem.getMulti(domainId, {})
+            const pdocs = await problem.getMulti(domainId, { hidden: false })
                 .sort({ _id: -1 }).limit(limit).toArray();
             return ['problems', pdocs];
         }
