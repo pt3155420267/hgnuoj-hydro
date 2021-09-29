@@ -28,6 +28,9 @@
         {% elif node[0] == 'ranking' %}
           {% set uids = node[1] %}
           {% include "partials/homepage/ranking.html" %}
+        {% elif node[0] == 'problems' %}
+          {% set pdocs = node[1] %}
+          {% include "partials/homepage/problems.html" %}
         {% elif node[0] == 'discussion' %}
           {% set ddocs = node[1] %}
           {% set vndict = node[2] %}
@@ -51,6 +54,32 @@
           </div>
         </div>
       {% endif %}
+      <!-- 以下代码仅guke测试使用 -->
+      {% if handler.user._id==3%}
+      <div class="section side">
+        <div class="section__header">
+          <h1 class="section__title">仅供guke使用</h1>
+        </div>
+        <div class="section__body">
+          <ul class="group-list">
+             <li class="group-list__item">
+              <ol class="chip-list">
+                <li class="chip-list__item">
+                  <a class="typo-a" href="/d/test/" target="_blank">test</a>
+                </li>
+                <li class="chip-list__item">
+                  <a class="typo-a" href="/d/hpcp/" target="_blank">hpcp</a>
+                </li>
+                <li class="chip-list__item">
+                  <a class="typo-a" href="/record" target="_blank">全部评测记录</a>
+                </li>
+              </ol>
+            </li>
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+      <!-- 以上代码仅guke测试使用 -->
       <div class="section side nojs--hide">
         <div class="section__header">
           <h1 class="section__title">{{ _('Hitokoto') }}</h1>

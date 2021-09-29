@@ -16,6 +16,7 @@ import * as contest from '../model/contest';
 import * as discussion from '../model/discussion';
 import domain from '../model/domain';
 import message from '../model/message';
+import problem from '../model/problem';
 import ProblemModel from '../model/problem';
 import * as setting from '../model/setting';
 import * as system from '../model/system';
@@ -93,6 +94,15 @@ class HomeHandler extends Handler {
             return ['ranking', uids];
         }
         return ['ranking', []];
+    }
+
+    async getProblems(domainId: string, limit = 5) {
+        if (this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) {
+            const pdocs = await problem.getMulti(domainId, {})
+                .sort({ _id: -1 }).limit(limit).toArray();
+            return ['problems', pdocs];
+        }
+        return ['problems', []];
     }
 
     async get({ domainId }) {
