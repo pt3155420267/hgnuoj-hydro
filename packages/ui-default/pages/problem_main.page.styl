@@ -5,7 +5,7 @@
 
   .col--pid
     width: rem(81px)
-  
+
   .col--status
     width: rem(140px)
     position: relative
@@ -28,6 +28,29 @@
 
     .col--ac
       border-left: 1px solid $table-border-color
+
+.page--problem_latest
+  .col--problemtried, .col--problemac
+    width: rem(70px)
+    text-align: right
+
+  .col--uploader
+    width: rem(250px)
+    text-align: right
+
+  +tablet()
+    .col--problemname
+      width: rem(200px)
+
+    .col--uploader
+      width: rem(150px)
+
+  +mobile()
+    .col--problemtried,
+    .col--problemac,
+    .col--uploader
+      display: none
+
 
 
 .widget--category-filter

@@ -1,5 +1,5 @@
 {% if pdocs.length %}
-  <div class="section">
+  <div class="section page--problem_latest">
     <div class="section__header">
       <h1 class="section__title">最新题目</h1>
     </div>
@@ -8,21 +8,21 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th class="col--name">{{ _('Name') }}</th>
-              <th class="col--user">上传者</th>
-              <th class="col--rp">提交数</th>
-              <th class="col--rp">AC数</th>
+              <th class="col--problemname">{{ _('Name') }}</th>
+              <th class="col--uploader">上传者</th>
+              <th class="col--problemtried">提交数</th>
+              <th class="col--problemac">AC数</th>
             </tr>
           </thead>
           <tbody>
             {%- for pdoc in pdocs -%}
               <tr>
-                <td class="col--name">
+                <td class="col--problemname">
                   <a href="{{ url('problem_detail', pid=pdoc.docId) }}">{{ pdoc.title }}</a>
                 </td>
-                <td class="col--user">{{ user.render_inline(udict[pdoc.owner]) }}</td>
-                <td class="col--rp">{{ pdoc.nSubmit }}</td>
-                <td class="col--rp">{{ pdoc.nAccept }}</td>
+                <td class="col--uploader">{{ user.render_inline(udict[pdoc.owner],badge=false) }}</td>
+                <td class="col--problemtried">{{ pdoc.nSubmit }}</td>
+                <td class="col--problemac">{{ pdoc.nAccept }}</td>
               </tr>
             {%- endfor -%}
           </tbody>
