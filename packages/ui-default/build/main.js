@@ -20,7 +20,7 @@ function runWebpack({
   if (dev) {
     const server = new WebpackDevServer(compiler, {
       compress: true,
-      hot: false,
+      hot: true,
       injectClient: false,
       disableHostCheck: true,
       stats: 'none',
