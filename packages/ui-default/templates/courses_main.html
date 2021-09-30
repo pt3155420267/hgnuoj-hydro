@@ -27,7 +27,7 @@
                             <div class="{{ class_name }} columns">
                                 <div class="course-card">
                                     <div class="course-card-header">
-                                        <h2 style="font-weight: normal">{{ item.name }}</h2>
+                                        <h2 style="font-weight: normal" data-tooltip="{{ item.name }}">{{ item.name }}</h2>
                                     </div>
                                     <div class="course-card-body">
                                         <p>创建者：{{ user.render_inline(uDocs[item.owner],false,false,false) }}</p>
