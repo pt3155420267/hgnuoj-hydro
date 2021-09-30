@@ -22,7 +22,7 @@
                     {% else %}
                     <div class="row">
                         {% for item in domains %}
-                            <div class="medium-3 columns">
+                            <div class="medium-4 columns">
                                 <div class="course-card">
                                     <div class="course-card-header">
                                         <h2 style="font-weight: normal">{{ item.name }}</h2>
@@ -38,12 +38,12 @@
                                     </div>
                                 </div>
                             </div>
-                            {% if loop.index % 4 and loop.last %}
-                                {% for i in range(0, 4 - (loop.index % 4)) -%}
+                            {% if loop.index % 3 and loop.last %}
+                                {% for i in range(0, 3 - (loop.index % 3)) -%}
                                     <div class="medium-3 columns"></div>
                                 {%- endfor %}
                             {% endif %}
-                            {% if loop.index % 4 === 0 or loop.last %}
+                            {% if loop.index % 3 === 0 or loop.last %}
                                 </div>
                                 {% if not loop.last %}
                                     <div style="height: 20px;"></div>
