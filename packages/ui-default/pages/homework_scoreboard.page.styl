@@ -1,19 +1,31 @@
 .page--homework_scoreboard
   .col--rank
-    width: rem(70px)
+    width: rem(60px)
     border-right: 1px solid $table-border-color
 
   .col--user
-    width: rem(200px)
+    width: rem(100px)
 
   .col--total_score, .col--total_time_str, .col--solved_problems
     width: rem(100px)
     text-align: center
 
   .col--problem_detail
+    width: rem(100px)
     border-left: 1px solid $table-border-color
     text-align: center
 
+  .horizontal-scroll
+    overflow: hidden
+
+  .col--stu_class
+    width: rem(100px)
+
+  .col--stu_name
+    width: rem(100px)
+
+  .col--stu_stuid
+    width: rem(120px)
   +mobile()
     .col--user
       width: auto
