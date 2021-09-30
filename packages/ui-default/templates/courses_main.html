@@ -21,8 +21,10 @@
                         {{ nothing.render('没有课程。') }}
                     {% else %}
                     <div class="row">
+                        {% set course_cols = 3 %}
+                        {% set class_name = 'medium-' + (12 / course_cols) %}
                         {% for item in domains %}
-                            <div class="medium-4 columns">
+                            <div class="{{ class_name }} columns">
                                 <div class="course-card">
                                     <div class="course-card-header">
                                         <h2 style="font-weight: normal">{{ item.name }}</h2>
@@ -38,12 +40,12 @@
                                     </div>
                                 </div>
                             </div>
-                            {% if loop.index % 3 and loop.last %}
-                                {% for i in range(0, 3 - (loop.index % 3)) -%}
-                                    <div class="medium-3 columns"></div>
+                            {% if loop.index % course_cols and loop.last %}
+                                {% for i in range(0, course_cols - (loop.index % course_cols)) -%}
+                                    <div class="{{ class_name }} columns"></div>
                                 {%- endfor %}
                             {% endif %}
-                            {% if loop.index % 3 === 0 or loop.last %}
+                            {% if loop.index % course_cols === 0 or loop.last %}
                                 </div>
                                 {% if not loop.last %}
                                     <div style="height: 20px;"></div>
