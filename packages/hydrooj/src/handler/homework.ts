@@ -84,9 +84,9 @@ class HomeworkDetailHandler extends Handler {
         const udict = await user.getList(domainId, uids);
         const index = tdoc.pids.map((i) => i.toString());
         for (const key in pdict) {
-            // const i = (index.indexOf(key) + 10).toString(36).toUpperCase();
-            // if (i !== '9') pdict[key].pid = i;
-            pdict[key].pid = (index.indexOf(key) + 1).toString();
+            const i = (index.indexOf(key) + 10).toString(36).toUpperCase();
+            if (i !== '9') pdict[key].pid = i;
+            // pdict[key].pid = (index.indexOf(key) + 1).toString();
         }
         this.response.template = 'homework_detail.html';
         this.response.body = {
@@ -125,7 +125,8 @@ class HomeworkDetailProblemHandler extends Handler {
     async _prepare(domainId: string, tid: ObjectID, _pid: string) {
         this.tdoc = await contest.get(domainId, tid);
         if (this.tdoc.rule !== 'homework') throw new ContestNotFoundError(domainId, tid);
-        this.pid = this.tdoc.pids[parseInt(_pid, 36) - 10];
+        // this.pid = this.tdoc.pids[parseInt(_pid, 36) - 10];
+        this.pid = this.tdoc.pids[parseInt(_pid, 10) - 1];
         if (!this.pid) throw new ProblemNotFoundError(domainId, tid, _pid);
         [this.udoc, this.pdoc, this.tsdoc] = await Promise.all([
             user.getById(domainId, this.tdoc.owner),
