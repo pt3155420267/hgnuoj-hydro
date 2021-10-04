@@ -63,7 +63,7 @@
           <div class="row"><div class="columns">
             <label>
               {{ _('Extension Score Penalty') }}
-              <textarea name="penaltyRules" class="monospace textbox">{% if tdoc %}{{ penaltyRules }}{% else %}{% include 'partials/homework_default_penalty_rules.yaml' %}{% endif %}</textarea>
+              <textarea name="penaltyRules" class="monospace textbox" style="height:100px">{% if tdoc %}{{ penaltyRules }}{% else %}{% include 'partials/homework_default_penalty_rules.yaml' %}{% endif %}</textarea>
             </label>
           </div></div>
           {{ form.form_text({
