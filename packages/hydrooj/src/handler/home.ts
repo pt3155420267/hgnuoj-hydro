@@ -40,7 +40,7 @@ class HomeHandler extends Handler {
     async getHomework(domainId: string, limit = 5) {
         if (this.user.hasPerm(PERM.PERM_VIEW_HOMEWORK)) {
             const tdocs = await contest.getMulti(domainId, { rule: 'homework' })
-                .limit(limit).toArray();
+                .limit(limit).sort({ topPinned: -1 }).toArray();
             const tsdict = await contest.getListStatus(
                 domainId, this.user._id, tdocs.map((tdoc) => tdoc.docId),
             );

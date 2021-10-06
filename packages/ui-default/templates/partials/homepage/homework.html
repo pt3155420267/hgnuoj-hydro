@@ -14,7 +14,13 @@
               </div>
             </div>
             <div class="media__body medium">
-              <h1 class="homework__title"><a href="{{ url('homework_detail', tid=tdoc.docId) }}" data-emoji-enabled>{{ tdoc['title'] }}</a></h1>
+              <h1 class="homework__title">
+                {% if tdoc['topPinned'] %}
+                  <span style="font-size:18px; font-weight:bold; color:#993399;">「置顶」</span>
+                {% endif %}
+                <a href="{{ url('homework_detail', tid=tdoc.docId) }}" data-emoji-enabled>{{ tdoc['title'] }}
+                </a>
+              </h1>
               <ul class="supplementary list">
                 <li>
                   {{ _('Status') }}: <span class="homework-status--text {{ model.contest.getStatus(tdoc) }}">{{ _(model.contest.statusText(tdoc)) }}</span>
