@@ -291,7 +291,7 @@ class HomeworkEditHandler extends Handler {
             penaltyRules: tid ? yaml.dump(tdoc.penaltyRules) : null,
             pids: tid ? tdoc.pids.join(',') : '',
             page_name: tid ? 'homework_edit' : 'homework_create',
-            topPinned: tdoc.topPinned,
+            topPinned: tdoc ? (tdoc.topPinned ?? false) : false,
         };
     }
 
