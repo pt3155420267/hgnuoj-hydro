@@ -60,6 +60,12 @@
               name:'extensionDays',
               value:extension_days|default(0)
           }) }}
+          {{ form.checkbox({
+                columns:4,
+                label:'将作业置顶',
+                name:'topPinned',
+                value:topPinned|default(false)
+          }) }}
           <div class="row"><div class="columns">
             <label>
               {{ _('Extension Score Penalty') }}

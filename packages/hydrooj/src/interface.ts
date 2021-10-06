@@ -334,6 +334,7 @@ export type ExternalProblemId = string; // ${string}:${number}
 export type ProblemId = ExternalProblemId | number;
 
 export interface Tdoc<docType = document['TYPE_CONTEST'] | document['TYPE_TRAINING']> extends Document {
+    topPinned: any;
     docId: ObjectID,
     docType: docType & number,
     beginAt: Date,

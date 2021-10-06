@@ -32,7 +32,7 @@ const convertPenaltyRules = validatePenaltyRules;
 
 class HomeworkMainHandler extends Handler {
     async get({ domainId }) {
-        const tdocs = await contest.getMulti(domainId, { rule: 'homework' }).toArray();
+        const tdocs = await contest.getMulti(domainId, { rule: 'homework' }).sort({ topPinned: -1 }).toArray();
         const calendar = [];
         for (const tdoc of tdocs) {
             const cal = { ...tdoc, url: this.url('homework_detail', { tid: tdoc.docId }) };
@@ -291,6 +291,7 @@ class HomeworkEditHandler extends Handler {
             penaltyRules: tid ? yaml.dump(tdoc.penaltyRules) : null,
             pids: tid ? tdoc.pids.join(',') : '',
             page_name: tid ? 'homework_edit' : 'homework_create',
+            topPinned: tdoc.topPinned,
         };
     }
 
@@ -305,10 +306,12 @@ class HomeworkEditHandler extends Handler {
     @param('content', Types.Content)
     @param('pids', Types.Content)
     @param('rated', Types.Boolean)
+    @param('topPinned', Types.Boolean)
     async post(
         domainId: string, tid: ObjectID, beginAtDate: string, beginAtTime: string,
         penaltySinceDate: string, penaltySinceTime: string, extensionDays: number,
         penaltyRules: PenaltyRules, title: string, content: string, _pids: string, rated = false,
+        topPinned = false,
     ) {
         const pids = _pids.replace(/，/g, ',').split(',').map((i) => {
             i = i.trim();
@@ -346,6 +349,7 @@ class HomeworkEditHandler extends Handler {
                 await contest.recalcStatus(domainId, tdoc.docId);
             }
         }
+        contest.edit(domainId, tid, { topPinned });
         this.response.body = { tid };
         this.response.redirect = this.url('homework_detail', { tid });
     }
