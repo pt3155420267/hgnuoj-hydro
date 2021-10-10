@@ -43,7 +43,7 @@
             </li>
           {% endif %}
           <li>{{ _('{0} views').format(ddoc.views) }}</li>
-          {% if handler
+          <!-- {% if handler
             .user
             .hasPriv(PRIV.PRIV_USER_PROFILE) %}
             <li>
@@ -60,13 +60,13 @@
                 </button>
               </form>
             </li>
-          {% endif %}
-          <li>
+          {% endif %} -->
+          <!-- <li>
             <a href="{{ url('wiki_help', anchor='contact') }}">
               <span class="icon icon-warning"></span>
               {{ _('Report') }}
             </a>
-          </li>
+          </li> -->
         </ul>
       </div>
       <!-- <div class="section">
