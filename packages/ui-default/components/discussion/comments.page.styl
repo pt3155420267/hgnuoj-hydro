@@ -1,43 +1,36 @@
 $upvote-color = green;
 $downvote-color = red;
 
-.dczcomments__item .is-editing {
-  [name='dczcomments__dummy-box'] {
+.dczcomments__item .is-editing
+  [name='dczcomments__dummy-box']
     display: none;
-  }
 
-  > .typo {
+  > .typo
     display: none;
-  }
-}
 
-.dczcomments__box .textbox {
+.dczcomments__box .textbox
   min-height: rem(180px);
   resize: vertical;
-}
 
-.textbox[name='dczcomments__dummy-box'] {
+.textbox[name='dczcomments__dummy-box']
   min-height: rem(60px);
   resize: none;
   font-size: rem($font-size-title);
   color: $comment-placeholder-color;
   padding: rem(10px);
-}
 
-.dczcomments__item, .dczcomments__reply {
+.dczcomments__item, .dczcomments__reply
   border-top: 1px solid $table-border-color;
 
-  >.media {
+  >.media
     padding: rem(20px 0);
-  }
 
-  &:first-child {
+
+  &:first-child
     border-top: 0;
-  }
-}
 
-.dczcomments__reply {
-  >.media {
+.dczcomments__reply
+  >.media
     // FIXME doesn't work on IE 11
     display: flex
 
