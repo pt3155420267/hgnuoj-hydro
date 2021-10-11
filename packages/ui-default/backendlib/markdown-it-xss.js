@@ -24,7 +24,7 @@ const xss = new Xss.FilterXSS({
     dd: [],
     del: ['datetime'],
     details: ['open'],
-    div: ['class', 'id'],
+    div: ['id', 'class'],
     dl: [],
     dt: [],
     em: [],
