@@ -109,6 +109,7 @@ class StudentModel {
 
     static async getClassList(domain: string = 'system'): Promise<object[]> {
         if (cache.has('classList')) return cache.get('classList');
+        const startTime = Date.now();
         const clsCursor = await coll.aggregate([
             { $match: { class: { $not: { $in: [null, ''] } } } },
             { $group: { _id: '$class', stuNum: { $sum: 1 } } },
@@ -136,7 +137,8 @@ class StudentModel {
 
         const clsList: any[] = await Promise.all(clsCursor);
         clsList.sort((a, b) => b.nAccept - a.nAccept || b.stuNum - a.stuNum || b.nSubmit - a.nSubmit || b._id - a._id);
-        bus.broadcast('student/cacheClassList', JSON.stringify(clsList));
+        await bus.broadcast('student/cacheClassList', JSON.stringify(clsList));
+        logger.info(`caching class list done. (${Date.now() - startTime}ms)`);
         return clsList;
     }
 }

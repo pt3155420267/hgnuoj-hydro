@@ -26,8 +26,8 @@
                                 <tr>
                                     <th class="col--rank">序号</th>
                                     <th class="col--classname">班级</th>
-                                    <th class="col--stunum">用户数量</th>
                                     <th class="col--ac">总计AC数</th>
+                                    <th class="col--stunum">用户数量</th>
                                     <th class="col--submit">总计提交数</th>
                                     <th class="col--rpavg">平均RP值</th>
                                     <th class="col--rpsum">总计RP值</th>
@@ -42,8 +42,8 @@
                                                 {{ item._id }}
                                             </a>
                                         </td>
-                                        <td class="col--stunum">{{ item.stuNum }}</td>
                                         <td class="col--ac">{{ item.nAccept }}</td>
+                                        <td class="col--stunum">{{ item.stuNum }}</td>
                                         <td class="col--submit">{{ item.nSubmit }}</td>
                                         <td class="col--rpavg">{{ item.rpAvg | default(1500,true) | round(0) }}</td>
                                         <td class="col--rpsum">{{ item.rpSum | default(1500*item.stuNum,true) | round(0) }}</td>
