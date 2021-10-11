@@ -11,9 +11,10 @@ import { ArgMethod } from '../utils';
 import UserModel from './user';
 
 const coll = db.collection('stu.info');
+const domainUsercoll = db.collection('domain.user');
 
 const logger = new Logger('model/stuinfo');
-const cache = new LRU<string, Student>({ max: 500, maxAge: 300 * 1000 });
+const cache = new LRU<string, any>({ max: 500, maxAge: 300 * 1000 });
 
 export function deleteStudentCache(studoc: Student | string | undefined | null, receiver = false) {
     if (!studoc) return;
@@ -24,14 +25,12 @@ export function deleteStudentCache(studoc: Student | string | undefined | null, 
         );
     }
     if (typeof studoc === 'string') {
-        for (const key of cache.keys().filter((k) => k.endsWith(`/${studoc}`))) {
-            cache.del(key);
-        }
-    } else {
-        const id = [`uid/${studoc._id.toString()}`, `stuid/${studoc.stuid}`];
-        for (const key of cache.keys().filter((k) => id.includes(k.split('/')[0]))) {
-            cache.del(key);
-        }
+        for (const key of cache.keys().filter((k) => k.endsWith(`/${studoc}`))) cache.del(key);
+        return;
+    }
+    const id = [`uid/${studoc._id.toString()}`, `stuid/${studoc.stuid.toLowerCase()}`];
+    for (const key of cache.keys().filter((k) => id.includes(`${k.split('/')[0]}/${k.split('/')[1]}`))) {
+        cache.del(key);
     }
 }
 bus.on('student/delcache', (content) => deleteStudentCache(JSON.parse(content), true));
@@ -109,18 +108,40 @@ class StudentModel {
     }
 
     static async getClassList(domain: string = 'system'): Promise<object[]> {
-        const clslist = await coll.aggregate([
+        if (cache.has('classList')) return cache.get('classList');
+        const clsCursor = await coll.aggregate([
             { $match: { class: { $not: { $in: [null, ''] } } } },
             { $group: { _id: '$class', stuNum: { $sum: 1 } } },
-        ]).sort({ stuNum: -1, _id: 1 }).toArray();
-        for await (const cls of clslist) {
-            const users: User[] = await this.getUserListByClassName(domain, cls._id.toString());
-            cls['nAccept'] = users.reduce((val, cur) => val + cur.nAccept, 0);
-        }
-        clslist.sort((a, b) => b.nAccept - a.nAccept);
-        return clslist;
+        ]).map((async (cls) => {
+            const users: number[] = await this.getUserUidsByClassName(domain, cls._id.toString());
+            const clsInfoList = await domainUsercoll.aggregate([
+                { $match: { uid: { $in: users } } },
+                {
+                    $group: {
+                        _id: 'result',
+                        nAccept: { $sum: '$nAccept' },
+                        nSubmit: { $sum: '$nSubmit' },
+                        rpSum: { $sum: '$rp' },
+                        rpAvg: { $avg: '$rp' },
+                    },
+                },
+            ]).toArray();
+            if (!clsInfoList.length) {
+                return {
+                    ...cls, nAccept: 0, nSubmit: 0, rpSum: 0, rpAvg: 0,
+                };
+            }
+            return { ...clsInfoList[0], ...cls };
+        })).toArray();
+
+        const clsList: any[] = await Promise.all(clsCursor);
+        clsList.sort((a, b) => b.nAccept - a.nAccept || b.stuNum - a.stuNum || b.nSubmit - a.nSubmit || b._id - a._id);
+        bus.broadcast('student/cacheClassList', JSON.stringify(clsList));
+        return clsList;
     }
 }
+
+bus.on('student/cacheClassList', (content: string) => cache.set('classList', JSON.parse(content)));
 
 bus.once('app/started', () => db.ensureIndexes(
     coll,

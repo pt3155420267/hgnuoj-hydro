@@ -1,0 +1,16 @@
+.page--stu_class_list
+  .col--rank
+    width: rem(80px)
+    position: relative
+
+  .col--classname
+    min-width: rem(200px)
+    text-align: left
+
+  .col--stunum, .col--ac, .col--submit,.col--rpavg, .col--rpsum
+    min-width: rem(120px)
+    text-align: right
+
+  +mobile()
+    .col--rpavg, .col--rpsum
+      display: none

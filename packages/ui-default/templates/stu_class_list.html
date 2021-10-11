@@ -7,7 +7,8 @@
                     <h1 class="section__title">班级</h1>
                 </div>
                 <div class="section__body">
-                    总计{{ cls.length }}个班级
+                    <p>总计{{ cls.length }}个班级.</p>
+                    <blockquote class="note"><strong>排序规则：</strong>总计AC数 -> 班级用户数 -> 总计提交数 -> 班级名称字典序</blockquote>
                 </div>
             </div>
         </div>
@@ -24,22 +25,28 @@
                             <thead>
                                 <tr>
                                     <th class="col--rank">序号</th>
-                                    <th class="col--rank">班级</th>
-                                    <th class="col--rank">用户数量</th>
-                                    <th class="col--rank">总计AC数</th>
+                                    <th class="col--classname">班级</th>
+                                    <th class="col--stunum">用户数量</th>
+                                    <th class="col--ac">总计AC数</th>
+                                    <th class="col--submit">总计提交数</th>
+                                    <th class="col--rpavg">平均RP值</th>
+                                    <th class="col--rpsum">总计RP值</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {%- for item in cls -%}
                                     <tr>
                                         <td class="col--rank">{{ loop.index }}</td>
-                                        <td class="col--rank">
+                                        <td class="col--classname">
                                             <a href="{{ url('student_class',cls=item._id) }}">
                                                 {{ item._id }}
                                             </a>
                                         </td>
-                                        <td class="col--rank">{{ item.stuNum }}</td>
-                                        <td class="col--rank">{{ item.nAccept }}</td>
+                                        <td class="col--stunum">{{ item.stuNum }}</td>
+                                        <td class="col--ac">{{ item.nAccept }}</td>
+                                        <td class="col--submit">{{ item.nSubmit }}</td>
+                                        <td class="col--rpavg">{{ item.rpAvg | default(1500,true) | round(0) }}</td>
+                                        <td class="col--rpsum">{{ item.rpSum | default(1500*item.stuNum,true) | round(0) }}</td>
                                     </tr>
                                 {%- endfor -%}
                             </tbody>
