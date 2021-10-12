@@ -185,8 +185,10 @@ class StudentModel {
     }
 }
 
-bus.on('student/cacheClassList', (content: string) => cache.set('classList', JSON.parse(content)));
+bus.on('student/cacheClassList', (content: string) => cache.set('classList', JSON.parse(content), 10 * 60 * 1000));
 bus.on('student/cacheActivity', (cls:string, content: string) => cache.set(`activity/${cls}`, JSON.parse(content), 15 * 60 * 1000));
+bus.on('student/invalidateClassListCache', () => cache.del('classList'));
+bus.on('student/invalidateActivityCache', () => cache.keys().filter((key) => /^activity\//.test(key)).forEach((key) => cache.del(key)));
 
 bus.once('app/started', () => db.ensureIndexes(
     coll,

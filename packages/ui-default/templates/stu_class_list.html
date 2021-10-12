@@ -5,6 +5,15 @@
             <div class="section">
                 <div class="section__header">
                     <h1 class="section__title">班级</h1>
+                    {% if handler.user.hasPriv(PRIV.PRIV_ALL) %}
+                    <div class="section__tools">
+                        <form method="post">
+                            <input type="hidden" name="csrfToken" value="{{ handler.csrfToken }}">
+                            <input type="hidden" name="operation" value="invalidate_cache">
+                            <button type="submit" class="primary button">刷新缓存</button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="section__body">
                     <p>总计{{ clsList.length }}个班级 <a data-tooltip="数据经过缓存处理">（刷新时间：{{ datetimeSpan(cacheTime) | safe }}）</a></p>
@@ -15,7 +24,7 @@
     </div>
     <div class="row">
         {% for clsItem in starStudents %}
-        <div class="small-6 columns">
+        <div class="small-6 columns stu-starclass">
             <div class="section">
                 <div class="section__header">
                     <h1 class="section__title">明星班级：{{ clsItem._id }}</h1>
@@ -59,7 +68,7 @@
                 <div class="section__header">
                     <h1 class="section__title">班级列表</h1>
                 </div>
-                <div class="section__body no-padding">
+                <div class="section__body no-padding stu-classlist">
                     <div>
                         <table class="data-table">
                             <colgroup>

@@ -16,6 +16,7 @@ import * as system from '../model/system';
 import task from '../model/task';
 import token from '../model/token';
 import user from '../model/user';
+import * as bus from '../service/bus';
 import {
     Handler, param, post, Route, Types,
 } from '../service/server';
@@ -427,6 +428,12 @@ class ClassHandler extends Handler {
         this.response.body = {
             ...cls, starStudents,
         };
+    }
+
+    async postInvalidateCache() {
+        await bus.broadcast('student/invalidateClassListCache');
+        await bus.broadcast('student/invalidateActivityCache');
+        this.back();
     }
 }
 
