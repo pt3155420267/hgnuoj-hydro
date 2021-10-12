@@ -103,7 +103,7 @@ export class ContestBroadcastHandler extends Handler {
     @param('tid', Types.ObjectID)
     async get(domainId: string, tid: ObjectID) {
         const tdoc = await contest.get(domainId, tid);
-        if (!this.user.own(tdoc)) throw new PermissionError('Boardcast Message');
+        if (!this.user.own(tdoc) && !this.user.hasPriv(PRIV.PRIV_ALL)) throw new PermissionError('Boardcast Message');
         const path = [
             ['Hydro', 'homepage'],
             ['contest_main', 'contest_main'],
@@ -118,7 +118,7 @@ export class ContestBroadcastHandler extends Handler {
     @param('content', Types.Content)
     async post(domainId: string, tid: ObjectID, content: string) {
         const tdoc = await contest.get(domainId, tid);
-        if (!this.user.own(tdoc)) throw new PermissionError('Boardcast Message');
+        if (!this.user.own(tdoc) && !this.user.hasPriv(PRIV.PRIV_ALL)) throw new PermissionError('Boardcast Message');
         const tsdocs = await contest.getMultiStatus(domainId, { docId: tid }).toArray();
         const uids: number[] = Array.from(new Set(tsdocs.map((tsdoc) => tsdoc.uid)));
         await Promise.all(
