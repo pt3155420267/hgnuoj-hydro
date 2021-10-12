@@ -1,6 +1,6 @@
 import { pick } from 'lodash';
 import LRU from 'lru-cache';
-import { Student, User } from '../interface';
+import { Student, Udict, User } from '../interface';
 // import { UserNotFoundError } from '../error';
 import { Logger } from '../logger';
 import * as bus from '../service/bus';
@@ -8,6 +8,7 @@ import db from '../service/db';
 import { Value } from '../typeutils';
 // import { PERM, PRIV } from './builtin';
 import { ArgMethod } from '../utils';
+import TokenModel from './token';
 import UserModel from './user';
 
 const coll = db.collection('stu.info');
@@ -63,6 +64,7 @@ class StudentModel {
                 class: classname,
                 stuid,
             });
+            bus.broadcast('student/delCacheClassStudentsList', classname);
         } catch (e) {
             logger.warn('%o', e);
         }
@@ -95,19 +97,27 @@ class StudentModel {
     }
 
     static async getUserUidsByClassName(domain: string, cls: string): Promise<number[]> {
-        const uids: number[] = [];
-        const cursor = coll.find({ class: cls }, { sort: { stuid: 1 } });
-        for (const student of await cursor.toArray()) uids.push(student._id);
-        return uids;
+        return coll.find({ class: cls }, { sort: { stuid: 1 } }).sort({ _id: 1 }).map((stu) => stu._id).toArray();
     }
 
     static async getUserListByClassName(domain: string, cls: string): Promise<User[]> {
         const uids: number[] = await this.getUserUidsByClassName(domain, cls);
-        const udocs: User[] = await Promise.all(uids.map(async (uid) => await UserModel.getById(domain, uid)));
+        const udocs: User[] = await Promise.all(uids.map((uid) => UserModel.getById(domain, uid)));
         return udocs;
     }
 
-    static async getClassList(domain: string = 'system'): Promise<object[]> {
+    static async getUserListByClassNameOrdered(domain: string, cls: string, limit:number = 3): Promise<User[]> {
+        const uids: number[] = await this.getUserUidsByClassName(domain, cls);
+        const promises: Promise<any>[] = (await domainUsercoll.find({ uid: { $in: uids } })
+            .sort({ rp: -1 })
+            .limit(limit)
+            .map(async (udict) => await UserModel.getById('system', udict.uid))
+            .toArray());
+        const topUsers: User[] = await Promise.all(promises);
+        return topUsers;
+    }
+
+    static async getClassList(domain: string = 'system'): Promise<any> {
         if (cache.has('classList')) return cache.get('classList');
         const startTime = Date.now();
         const clsCursor = await coll.aggregate([
@@ -127,23 +137,56 @@ class StudentModel {
                     },
                 },
             ]).toArray();
+            let activityList: number[];
+            if (cache.has(`activity/${cls._id}`)) activityList = cache.get(`activity/${cls._id}`);
+            else {
+                activityList = await Promise.all(users.map(async (uid) => (
+                    await TokenModel.getMostRecentSessionByUid(uid))?.updateAt.valueOf()
+                    || (await UserModel.getById(domain, uid))?.loginat.valueOf()
+                    || Date.now() - 7 * 24 * 60 * 60 * 1000));
+                await bus.broadcast('student/cacheActivity', cls._id, JSON.stringify(activityList));
+            }
+            const activity = (activityList.reduce((pre, cur) => (pre + cur) / 2) % 1e10);
             if (!clsInfoList.length) {
                 return {
-                    ...cls, nAccept: 0, nSubmit: 0, rpSum: 0, rpAvg: 0,
+                    ...cls, nAccept: 0, nSubmit: 0, rpSum: 1500 * cls.stuNum, rpAvg: 1500, activity,
                 };
             }
-            return { ...clsInfoList[0], ...cls };
+            return { ...clsInfoList[0], ...cls, activity };
         })).toArray();
-
         const clsList: any[] = await Promise.all(clsCursor);
-        clsList.sort((a, b) => b.nAccept - a.nAccept || b.stuNum - a.stuNum || b.nSubmit - a.nSubmit || b._id - a._id);
-        await bus.broadcast('student/cacheClassList', JSON.stringify(clsList));
+        const sortWeights = {
+            rpAvg: 2,
+            stuNum: 10,
+            nAccept: 10,
+            nSubmit: 4,
+            activity: 30,
+        };
+        const calSortWeight = (cls) => Object.entries(sortWeights).reduce((pre, [key, val]) => pre + cls[key] * val, 0);
+        const normalize = (val, min, max, newMin, newMax) => ((val - min) / (max - min)) * (newMax - newMin) + newMin;
+
+        const activityList = clsList.map((cls:{ activity:number }) => cls.activity / 1e5);
+        const activityMax = Math.max(...activityList);
+        const activityMin = Math.min(...activityList);
+        clsList.forEach((cls) => { cls.activity = normalize(cls.activity / 1e5, activityMin - 1000, activityMax + 1000, 0, 100); });
+
+        clsList.forEach((cls) => { cls.weight = calSortWeight(cls); });
+        const weightList = clsList.map((cls:{ weight:number }) => cls.weight);
+        const weightMax = Math.max(...weightList);
+        const weightMin = Math.min(...weightList);
+        clsList.forEach((cls) => { cls.weight = normalize(cls.weight, weightMin - 100, weightMax + 100, 0, 100); });
+
+        clsList.sort((a, b) => b.weight - a.weight);
+
+        const res = { cacheTime: Date.now(), clsList };
+        await bus.broadcast('student/cacheClassList', JSON.stringify(res));
         logger.info(`caching class list done. (${Date.now() - startTime}ms)`);
-        return clsList;
+        return res;
     }
 }
 
 bus.on('student/cacheClassList', (content: string) => cache.set('classList', JSON.parse(content)));
+bus.on('student/cacheActivity', (cls:string, content: string) => cache.set(`activity/${cls}`, JSON.parse(content), 15 * 60 * 1000));
 
 bus.once('app/started', () => db.ensureIndexes(
     coll,

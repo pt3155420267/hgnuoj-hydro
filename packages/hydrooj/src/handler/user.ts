@@ -418,11 +418,14 @@ class StudentClassHandler extends Handler {
 }
 
 class ClassHandler extends Handler {
-    async get() {
-        const cls: any[] = await student.getClassList();
+    async get(domainId: string) {
+        const cls: { clsList:any[] } = await student.getClassList();
+        const starStudents: any[] = await Promise.all(
+            cls.clsList.slice(0, 2).map(async ({ _id }) => ({ _id, students: await student.getUserListByClassNameOrdered(domainId, _id, 3) })),
+        );
         this.response.template = 'stu_class_list.html';
         this.response.body = {
-            cls,
+            ...cls, starStudents,
         };
     }
 }

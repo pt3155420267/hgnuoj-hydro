@@ -1,16 +1,29 @@
 .page--stu_class_list
   .col--rank
-    width: rem(80px)
+    width: rem(100px)
     position: relative
 
   .col--classname
     min-width: rem(200px)
     text-align: left
 
-  .col--stunum, .col--ac, .col--submit,.col--rpavg, .col--rpsum
-    min-width: rem(120px)
+  .col--stunum, .col--ac, .col--submit, .col--rpavg, .col--rpsum, .col--activity, .col--weight
+    min-width: rem(100px)
     text-align: right
 
+  .col--user-rank
+    width: rem(60px)
+
+  .col--user-ac, .col--user-ac, .col--user-submit, .col--user-rp
+    width: rem(60px)
+    text-align: right
+
+  .col--user-bio
+    min-width: rem(400px)
+
+  .col--user
+    width: rem(160px)
+
   +mobile()
-    .col--rpavg, .col--rpsum
+    .col--rpavg, .col--rpsum, .col--weight, .col--rpavg, .col--submit
       display: none
