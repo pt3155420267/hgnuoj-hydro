@@ -96,6 +96,30 @@
     <div class="medium-3 columns">
       {% set owner_udoc = udoc %}
       {% include "partials/problem_sidebar.html" %}
+    <div class="section">
+      <div class="problem-content-container"><div class="problem-content" data-marker-enabled>
+        <div class="section__header non-scratchpad--hide">
+          <h1 class="section__title">{{ pdoc.title }}</h1>
+        </div>
+        <div class="section__body typo">
+        {% if not pdoc.data.length %}
+          <blockquote class="warn">
+            <p>{{ _('No testdata at current.') }}</p>
+          </blockquote>
+        {% endif %}
+        {% if typeof(pdoc.config) == 'string' %}
+          <blockquote class="warn">
+            <p>{{ pdoc.config }}</p>
+          </blockquote>
+        {% endif %}
+        {% if tdoc and tdoc.docType == model.document.TYPE_CONTEST and model.contest.isDone(tdoc) %}
+          <blockquote class="note">
+            <p>{{ _('You cannot submit for this problem because the contest is ended. You can click "Open in Problem Set" to view this problem in normal mode.') }}</p>
+          </blockquote>
+        {% endif %}
+        {{ pdoc.content|content(handler.user.viewLang or handler.session.viewLang, pdoc.html)|safe }}
+        </div>
+      </div></div>
     </div>
   </div>
   <div style="display:none" class="outer-loader-container">
