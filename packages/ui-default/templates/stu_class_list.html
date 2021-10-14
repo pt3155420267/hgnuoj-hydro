@@ -68,7 +68,7 @@
                 <div class="section__header">
                     <h1 class="section__title">班级列表</h1>
                 </div>
-                <div class="section__body no-padding stu-classlist">
+                <div class="section__body no-padding">
                     <div>
                         <table class="data-table">
                             <colgroup>
@@ -86,7 +86,7 @@
                                     <th class="col--weight">排名权重</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="stu-classlist">
                                 {%- for item in clsList -%}
                                     <tr>
                                         <td class="col--rank">{{ loop.index }}</td>
@@ -98,7 +98,7 @@
                                         <td class="col--stunum">{{ item.stuNum }}</td>
                                         <td class="col--ac">{{ item.nAccept }}</td>
                                         <td class="col--submit">{{ item.nSubmit }}</td>
-                                        <td class="col--rpavg">{{ item.rpAvg | default(1500,true) | round(0) }}</td>
+                                        <td class="col--rpavg">{{ item.rpAvg | round(0) }}</td>
                                         <td class="col--activity">{{ item.activity | round(0) }}</td>
                                         <td class="col--weight">{{ item.weight | round(0) }}</td>
                                     </tr>

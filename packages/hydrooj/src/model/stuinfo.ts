@@ -144,6 +144,7 @@ class StudentModel {
                     await TokenModel.getMostRecentSessionByUid(uid))?.updateAt.valueOf()
                     || (await UserModel.getById(domain, uid))?.loginat.valueOf()
                     || Date.now() - 7 * 24 * 60 * 60 * 1000));
+                activityList = activityList.map((ac) => Math.max(ac, Date.now() - 7 * 24 * 60 * 60 * 1000));
                 await bus.broadcast('student/cacheActivity', cls._id, JSON.stringify(activityList));
             }
             const activity = (activityList.reduce((pre, cur) => (pre + cur) / 2) % 1e10);
@@ -155,12 +156,13 @@ class StudentModel {
             return { ...clsInfoList[0], ...cls, activity };
         })).toArray();
         const clsList: any[] = await Promise.all(clsCursor);
+        clsList.forEach((cls) => { cls.rpAvg = cls.rpAvg || 1500; });
         const sortWeights = {
             rpAvg: 2,
             stuNum: 10,
             nAccept: 10,
-            nSubmit: 4,
-            activity: 30,
+            nSubmit: 5,
+            activity: 2,
         };
         const calSortWeight = (cls) => Object.entries(sortWeights).reduce((pre, [key, val]) => pre + cls[key] * val, 0);
         const normalize = (val, min, max, newMin, newMax) => ((val - min) / (max - min)) * (newMax - newMin) + newMin;
@@ -168,13 +170,13 @@ class StudentModel {
         const activityList = clsList.map((cls:{ activity:number }) => cls.activity / 1e5);
         const activityMax = Math.max(...activityList);
         const activityMin = Math.min(...activityList);
-        clsList.forEach((cls) => { cls.activity = normalize(cls.activity / 1e5, activityMin - 1000, activityMax + 1000, 0, 100); });
+        clsList.forEach((cls) => { cls.activity = normalize(cls.activity / 1e5, activityMin - 1000, activityMax + 1000, 0, 1000); });
 
         clsList.forEach((cls) => { cls.weight = calSortWeight(cls); });
         const weightList = clsList.map((cls:{ weight:number }) => cls.weight);
         const weightMax = Math.max(...weightList);
         const weightMin = Math.min(...weightList);
-        clsList.forEach((cls) => { cls.weight = normalize(cls.weight, weightMin - 100, weightMax + 100, 0, 100); });
+        clsList.forEach((cls) => { cls.weight = normalize(cls.weight, weightMin - 1000, weightMax + 1000, 0, 1000); });
 
         clsList.sort((a, b) => b.weight - a.weight);
 
