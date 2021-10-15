@@ -73,7 +73,8 @@ export default function (env = {}) {
 
   const config = {
     bail: true,
-    mode: (env.production || env.measure) ? 'production' : 'development',
+    // mode: (env.production || env.measure) ? 'production' : 'development',
+    mode: 'production',
     profile: true,
     context: root(),
     entry: {
@@ -126,8 +127,8 @@ export default function (env = {}) {
     optimization: {
       splitChunks: {
         minSize: 256000,
-        maxAsyncRequests: 5,
-        maxInitialRequests: 3,
+        maxAsyncRequests: 6,
+        maxInitialRequests: 4,
         automaticNameDelimiter: '-',
         cacheGroups: {
           monaco: {
