@@ -108,11 +108,14 @@ class StudentModel {
 
     static async getUserListByClassNameOrdered(domain: string, cls: string, limit:number = 3): Promise<User[]> {
         const uids: number[] = await this.getUserUidsByClassName(domain, cls);
-        const promises: Promise<any>[] = (await domainUsercoll.find({ uid: { $in: uids } })
+        const promises: Promise<any>[] = await domainUsercoll.aggregate([
+            { $match: { uid: { $in: uids } } },
+            { $group: { _id: '$uid', rp: { $avg: '$rp' } } },
+        ])
             .sort({ rp: -1 })
             .limit(limit)
-            .map(async (udict) => await UserModel.getById('system', udict.uid))
-            .toArray());
+            .map(async ({ _id }) => await UserModel.getById('system', _id))
+            .toArray();
         const topUsers: User[] = await Promise.all(promises);
         return topUsers;
     }
