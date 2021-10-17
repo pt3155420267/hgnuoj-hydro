@@ -96,13 +96,28 @@ class HomeHandler extends Handler {
         return ['ranking', []];
     }
 
-    async getProblems(domainId: string, limit = 5) {
+    async getLatestProblems(domainId: string, limit = 5) {
         if (this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) {
             const pdocs = await problem.getMulti(domainId, { hidden: false })
                 .sort({ _id: -1 }).limit(limit).toArray();
-            return ['problems', pdocs];
+            return ['latestProblems', pdocs];
         }
-        return ['problems', []];
+        return ['latestProblems', []];
+    }
+
+    async getStarredProblem(domainId: string, limit = 50) {
+        if (this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) {
+            const psdocs = await ProblemModel.getMultiStatus(domainId, { uid: this.user._id, star: true })
+                .sort('_id', 1).limit(limit).toArray();
+            const psdict = {};
+            for (const psdoc of psdocs) psdict[psdoc.docId] = psdoc;
+            const pdict = await ProblemModel.getList(
+                domainId, psdocs.map((pdoc) => pdoc.docId), false,
+            );
+            const pdocs = Object.keys(pdict).filter((i) => +i).map((i) => pdict[i]);
+            return ['problem', pdocs, psdict];
+        }
+        return ['problem', [], {}];
     }
 
     async get({ domainId }) {
@@ -114,6 +129,7 @@ class HomeHandler extends Handler {
             if (!this[func]) continue;
             tasks.push(this[func](domainId, +info[key]));
         }
+        const [, pdocs, psdict] = await this.getStarredProblem(domainId);
         const contents = await Promise.all(tasks);
         const [udict, dodoc, vnodes] = await Promise.all([
             user.getList(domainId, Array.from(this.uids)),
@@ -126,6 +142,8 @@ class HomeHandler extends Handler {
             udict,
             domain: dodoc,
             vnodes,
+            pdocs,
+            psdict,
         };
     }
 }
