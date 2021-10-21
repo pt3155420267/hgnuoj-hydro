@@ -15,9 +15,9 @@ import { ArgMethod } from '../utils';
 import { PERM, PRIV } from './builtin';
 import domain from './domain';
 import * as setting from './setting';
+import StudentModel from './stuinfo';
 import * as system from './system';
 import token from './token';
-import StudentModel from './stuinfo';
 
 const coll: Collection<Udoc> = db.collection('user');
 // Virtual user, only for display in contest.
@@ -229,7 +229,7 @@ class UserModel {
             if (stu && stu._id !== uid) throw new UserAlreadyExistError(studoc['stuid']);
         }
         StudentModel.setById(uid, studoc);
-        if (op.$set?.loginIp) op.$addToSet = { ip: op.$set.loginIp };
+        if (op.$set?.loginip) op.$addToSet = { ip: op.$set.loginip };
         const res = await coll.findOneAndUpdate({ _id: uid }, op, { returnDocument: 'after' });
         deleteUserCache(res.value);
         return res;
