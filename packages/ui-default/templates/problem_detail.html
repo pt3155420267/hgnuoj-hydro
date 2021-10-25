@@ -77,7 +77,7 @@
               <h1 class="section__title">{{ pdoc.title }}</h1>
             </div>
             <div class="section__body typo">
-              {% if not pdoc.data.length %}
+              {% if not pdoc.data.length and not pdoc.reference %}
                 <blockquote class="warn">
                   <p>{{ _('No testdata at current.') }}</p>
                 </blockquote>
@@ -96,7 +96,7 @@
                   <p>{{ _('You cannot submit for this problem because the contest is ended. You can click "Open in Problem Set" to view this problem in normal mode.') }}</p>
                 </blockquote>
               {% endif %}
-              {{ pdoc.content|content(handler.user.viewLang, pdoc.html)|safe }}
+              {{ pdoc.content|content(handler.user.viewLang or handler.session.viewLang, pdoc.html)|safe }}
             </div>
           </div>
         </div>
