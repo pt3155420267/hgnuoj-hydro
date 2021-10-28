@@ -12,7 +12,7 @@
       <li class="nav__list-item">
           <!-- <a href="/" class="nav__logo" style="background-size: 100% 100%;">&nbsp;</a> -->
           <a href="/" style="text-decoration: none;">
-            <h2 
+            <h2
               style="height: 44px; line-height: 44px;font-weight: bolder; margin: 0;padding:0 10px 0 10px;"
             >HGNUOJ</h2>
           </a>
@@ -85,19 +85,24 @@
                 <span class="icon icon-file"></span> {{ _('My Files') }}
               </a>
             </li>
-                  {% endif %}
-                  <li class="menu__seperator"></li>
-                  <li class="menu__item">
-                    <a href="{{ url('user_logout') }}" class="menu__link" name="nav_logout">
-                      <span class="icon icon-logout"></span>
-                      {{ _('Logout') }}
-                    </a>
-                  </li>
-                </ol>
-              </li>
-            {% endif %}
-          </ol>
-        </div>
-      </div>
-    </nav>
-    <nav class="nav--shadow"></nav>
+          {% endif %}
+          <li class="menu__seperator"></li>
+          {% if handler.user.hasPriv(PRIV.PRIV_EDIT_SYSTEM) %}
+            <li class="menu__item nojs--hide">
+              <a class="menu__link" name="nav_switch_account">
+                <span class="icon icon-user"></span> {{ _('Switch account') }}
+              </a>
+            </li>
+          {% endif %}
+          <li class="menu__item">
+            <a href="{{ url('user_logout') }}" class="menu__link" name="nav_logout">
+              <span class="icon icon-logout"></span> {{ _('Logout') }}
+            </a>
+          </li>
+        </ol>
+      </li>
+    {% endif %}
+    </ol>
+  </div></div>
+</nav>
+<nav class="nav--shadow"></nav>

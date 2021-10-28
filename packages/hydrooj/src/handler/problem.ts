@@ -21,6 +21,7 @@ import { PERM, PRIV } from '../model/builtin';
 import * as contest from '../model/contest';
 import * as discussion from '../model/discussion';
 import domain from '../model/domain';
+import * as oplog from '../model/oplog';
 import problem from '../model/problem';
 import record from '../model/record';
 import solution from '../model/solution';
@@ -60,12 +61,39 @@ registerValue('Problem', [
     ['tag', '[String]'],
     ['hidden', 'Boolean'],
 ]);
-registerResolver('Query', 'problem(id: Int, pid: String)', 'Problem', async (arg, ctx) => {
-    const pdoc = await problem.get(ctx.domainId, arg.pid || arg.id);
-    if (!pdoc) return null;
-    if (pdoc.hidden && !ctx.user.own(pdoc)) ctx.checkPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN);
-    return pdoc;
-});
+registerValue('ProblemManage', [
+    ['delete', 'Boolean!'],
+]);
+
+registerResolver(
+    'Query', 'problem(id: Int, pid: String)', 'Problem',
+    async (arg, ctx) => {
+        const pdoc = await problem.get(ctx.domainId, arg.pid || arg.id);
+        if (!pdoc) return null;
+        if (pdoc.hidden && !ctx.user.own(pdoc)) ctx.checkPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN);
+        ctx.pdoc = pdoc;
+        return pdoc;
+    },
+);
+registerResolver(
+    'Problem', 'manage', 'ProblemManage',
+    (arg, ctx) => {
+        if (!ctx.user.own(ctx.pdoc, PERM.PERM_EDIT_PROBLEM_SELF)) ctx.checkPerm(PERM.PERM_EDIT_PROBLEM);
+        return {};
+    },
+);
+registerResolver(
+    'ProblemManage', 'delete', 'Boolean!',
+    async (arg, ctx) => {
+        const tdocs = await contest.getRelated(ctx.domainId, ctx.pdoc.docId);
+        if (tdocs.length) throw new BadRequestError('Problem already used by contest {0}', tdocs[0]._id);
+        return problem.del(ctx.pdoc.domainId, ctx.pdoc.docId);
+    },
+);
+registerResolver(
+    'ProblemManage', 'edit(title: String, content: String, tag: [String], hidden: Boolean)', 'Problem!',
+    (arg, ctx) => problem.edit(ctx.domainId, ctx.pdoc.docId, arg),
+);
 
 export class ProblemHandler extends Handler {
     async cleanup() {
@@ -450,6 +478,21 @@ export class ProblemFilesHandler extends ProblemDetailHandler {
         }
         if (this.pdoc.reference) this.pdoc = await problem.get(this.pdoc.reference.domainId, this.pdoc.reference.pid);
         const links = {};
+        const size = Math.sum(
+            this.pdoc[type === 'testdata' ? 'data' : 'additional_file']
+                ?.filter((i) => files.has(i.name))
+                ?.map((i) => i.size),
+        ) || 0;
+        await oplog.add({
+            type: 'bulkDownload',
+            time: new Date(),
+            uid: this.user._id,
+            ip: this.request.ip,
+            fileType: 'problem',
+            target: Array.from(files).map((file) => `problem/${this.pdoc.domainId}/${this.pdoc.docId}/${type}/${file}`),
+            referer: this.request.referer,
+            size,
+        });
         for (const file of files) {
             // eslint-disable-next-line no-await-in-loop
             links[file] = await storage.signDownloadLink(
@@ -543,6 +586,16 @@ export class ProblemFileDownloadHandler extends ProblemDetailHandler {
         }
         const target = `problem/${this.pdoc.domainId}/${this.pdoc.docId}/${type}/${filename}`;
         const file = await storage.getMeta(target);
+        await oplog.add({
+            type: 'download',
+            time: new Date(),
+            uid: this.user._id,
+            ip: this.request.ip,
+            fileType: 'problem',
+            target,
+            referer: this.request.referer,
+            size: file?.size || 0,
+        });
         if (!file) {
             this.response.redirect = await storage.signDownloadLink(
                 target, noDisposition ? undefined : filename, false, 'user',
