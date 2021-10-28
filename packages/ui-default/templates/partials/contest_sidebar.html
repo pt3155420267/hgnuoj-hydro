@@ -17,7 +17,6 @@
 {% endif %}
   <div>
     <ol class="menu">
-    {#
     {% if page_name == 'discussion_node' or page_name == 'discussion_detail' %}
     {% if handler.user.hasPerm(perm.PERM_CREATE_DISCUSSION) %}
       <li class="menu__item"><a class="menu__link highlight" href="{{ url('discussion_create', type='contest', name=tdoc.docId) }}">
@@ -33,7 +32,6 @@
       {% endif %}
     {% endif %}
       <li class="menu__seperator"></li>
-    #}
     {% endif %}
     {% if page_name != 'contest_detail' %}
       <li class="menu__item"><a class="menu__link" href="{{ url('contest_detail', tid=tdoc.docId) }}">
