@@ -187,6 +187,8 @@ export class ProblemMainHandler extends ProblemHandler {
     @param('pids', Types.NumericArray)
     @param('target', Types.String)
     async postCopy(domainId: string, pids: number[], target: string) {
+        const t = `,${this.domain.share || ''},`;
+        if (t !== ',*,' && !t.includes(`,${target},`)) throw new PermissionError(target);
         const ddoc = await domain.get(target);
         if (!ddoc) throw new NotFoundError(target);
         const dudoc = await user.getById(target, this.user._id);
@@ -346,6 +348,8 @@ export class ProblemDetailHandler extends ProblemHandler {
 
     @param('target', Types.String)
     async postCopy(domainId: string, target: string) {
+        const t = `,${this.domain.share || ''},`;
+        if (t !== ',*,' && !t.includes(`,${target},`)) throw new PermissionError(target);
         const ddoc = await domain.get(target);
         if (!ddoc) throw new NotFoundError(target);
         const dudoc = await user.getById(target, this.user._id);
@@ -388,7 +392,7 @@ export class ProblemSubmitHandler extends ProblemDetailHandler {
         if (this.response.body.pdoc.config?.langs && !this.response.body.pdoc.config.langs.includes(lang)) {
             throw new BadRequestError('Language not allowed.');
         }
-        if (pretest && this.response.body.pdoc.config?.type !== 'default') throw new BadRequestError('unable to run pretest');
+        if (pretest && !['default', 'fileio'].includes(this.response.body.pdoc.config?.type)) throw new BadRequestError('unable to run pretest');
         await this.limitRate('add_record', 60, system.get('limit.submission'));
         const rid = await record.add(domainId, this.pdoc.docId, this.user._id, lang, code, true, pretest ? input : tid, !pretest);
         const rdoc = await record.get(domainId, rid);
