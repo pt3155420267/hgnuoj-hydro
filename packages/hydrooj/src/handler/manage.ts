@@ -227,7 +227,6 @@ class SystemUserImportHandler extends SystemHandler {
 class SystemStudentImportHandler extends SystemHandler {
     async get() {
         this.response.body.users = [];
-        this.response.body.path.push(['manage_student_import']);
         this.response.template = 'manage_stu_import.html';
     }
 
@@ -278,7 +277,6 @@ class SystemStudentImportHandler extends SystemHandler {
                 }
             }));
         }
-        this.response.body.path.push(['manage_student_import']);
         this.response.body.users = udocs;
         this.response.body.messages = messages;
     }
@@ -286,8 +284,6 @@ class SystemStudentImportHandler extends SystemHandler {
 
 class SystemTeacherRegisterHandler extends SystemHandler {
     async get() {
-        // this.response.body.users = [];
-        this.response.body.path.push(['manage_teacher_register']);
         this.response.template = 'manage_teacher_register.html';
     }
 
@@ -321,7 +317,6 @@ class SystemTeacherRegisterHandler extends SystemHandler {
 
 class SystemChangeUserPasswordHandler extends SystemHandler {
     async get() {
-        this.response.body.path.push(['manage_user_changepassword']);
         this.response.template = 'manage_user_changepassword.html';
     }
 
@@ -341,7 +336,6 @@ class SystemChangeUserPasswordHandler extends SystemHandler {
         else throw new BadRequestError('请填写用户信息！');
         if (!udoc) throw new BadRequestError('用户不存在！');
         await user.setPassword(udoc._id, password);
-        this.response.body.path.push(['manage_user_changepassword']);
         this.back();
     }
 }
