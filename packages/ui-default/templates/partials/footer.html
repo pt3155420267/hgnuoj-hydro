@@ -115,7 +115,9 @@
       </div>
       <div class="footer__extra-right">
         <ol class="clearfix">
-          <!-- TODO -->
+          {%- for html in (handler.domain.ui.footer_extra_html|default('')).split('\n') -%}
+            <li class="footer__extra-link-item">{{ html|safe }}</li>
+          {%- endfor -%}
           {%- for html in (model.system.get('ui-default.footer_extra_html')|default('')).split('\n') -%}
             <li class="footer__extra-link-item">{{ html|safe }}</li>
           {%- endfor -%}
