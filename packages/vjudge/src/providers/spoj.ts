@@ -118,12 +118,13 @@ langs: ${JSON.stringify(langs)}`),
     }
 
     async submitProblem(problemcode: string, lang: string, code: string, info, next, end) {
-        const comment = setting.langs[lang]?.comment;
-        if (comment) {
-            const msg = `Hydro submission #${info.rid}@${new Date().getTime()}`;
-            if (typeof comment === 'string') code = `${comment} ${msg}\n${code}`;
-            else if (comment instanceof Array) code = `${comment[0]} ${msg} ${comment[1]}\n${code}`;
-        }
+        // 以下几行会为提交的代码自动加上"// Hydro submission..."的注释，但是该注释不适配所有语言的注释格式，会导致部分语言(例如Python)远端评测失败
+        // const comment = setting.langs[lang]?.comment;
+        // if (comment) {
+        //     const msg = `Hydro submission #${info.rid}@${new Date().getTime()}`;
+        //     if (typeof comment === 'string') code = `${comment} ${msg}\n${code}`;
+        //     else if (comment instanceof Array) code = `${comment[0]} ${msg} ${comment[1]}\n${code}`;
+        // }
         // TODO check submit time to ensure submission
         const { text } = await this.post('/submit/complete/').send({
             submit: 'Submit!',
