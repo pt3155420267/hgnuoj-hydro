@@ -54,6 +54,7 @@ class User implements _User {
     _hash: string;
     _regip: string;
     _loginip: string;
+    _tfa: string;
 
     mail: string;
     uname: string;
@@ -65,6 +66,7 @@ class User implements _User {
     role: string;
     scope: bigint;
     _files: FileInfo[];
+    tfa: boolean;
     [key: string]: any;
 
     constructor(udoc: Udoc, dudoc, scope = PERM.PERM_ALL) {
@@ -77,6 +79,7 @@ class User implements _User {
         this._regip = udoc.ip?.[0] || '';
         this._loginip = udoc.loginip;
         this._files = udoc._files || [];
+        this._tfa = udoc.tfa;
 
         this.mail = udoc.mail;
         this.uname = udoc.uname;
@@ -87,6 +90,7 @@ class User implements _User {
         this.perm = dudoc.perm;
         this.scope = typeof scope === 'string' ? BigInt(scope) : scope;
         this.role = dudoc.role || 'default';
+        this.tfa = !!udoc.tfa;
 
         for (const key in setting.SETTINGS_BY_KEY) {
             this[key] = udoc[key] ?? setting.SETTINGS_BY_KEY[key].value;
@@ -126,7 +130,8 @@ class User implements _User {
     checkPassword(password: string) {
         const h = global.Hydro.lib[`hash.${this.hashType}`];
         if (!h) throw new Error('Unknown hash method');
-        if (h(password, this._salt, this) !== this._hash) {
+        const result = h(password, this._salt, this);
+        if (result !== true && result !== this._hash) {
             throw new LoginError(this.uname);
         } else if (this.hashType !== 'hydro') {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
