@@ -1,4 +1,4 @@
-# HGNUOJ
+# HGNU Online Judge Platform
 
 本项目由黄冈师范学院计算机学院ACM团队运行和维护，基于[HydroOJ](https://github.com/hydro-dev/Hydro)修改。
 
