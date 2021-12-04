@@ -5,10 +5,10 @@ import { lookup } from 'mime-types';
 import { FilterQuery, ObjectID } from 'mongodb';
 import { sortFiles } from '@hydrooj/utils/lib/utils';
 import {
-    BadRequestError, ContestNotAttendedError, ContestNotFoundError,
-    ContestNotLiveError, ForbiddenError, NoProblemError,
-    NotFoundError, PermissionError, ProblemNotFoundError,
-    SolutionNotFoundError, ValidationError,
+    BadRequestError, ContestNotAttendedError, ContestNotEndedError,
+    ContestNotFoundError, ContestNotLiveError,
+    ForbiddenError, NoProblemError, NotFoundError,
+    PermissionError, ProblemNotFoundError, SolutionNotFoundError, ValidationError,
 } from '../error';
 import {
     ProblemConfig,
@@ -128,17 +128,22 @@ export class ProblemMainHandler extends ProblemHandler {
         const query: FilterQuery<ProblemDoc> = {};
         let psdict = {};
         const search = global.Hydro.lib.problemSearch;
-        let sort: number[];
-        if (category.length) {
-            query.$and = [];
-            for (const tag of category) query.$and.push({ tag });
-        }
+        let sort: string[];
+        let fail = false;
+        if (category.length) query.$and = category.map((tag) => ({ tag }));
         if (q) category.push(q);
         if (category.length) this.extraTitleContent = category.join(',');
         if (q) {
             if (search) {
                 const result = await search(domainId, q);
-                query.docId = { $in: result };
+                if (!result.length) fail = true;
+                if (!query.$and) query.$and = [];
+                query.$and.push({
+                    $or: result.map((i) => {
+                        const [did, docId] = i.split('/');
+                        return { domainId: did, docId: +docId };
+                    }),
+                });
                 sort = result;
             } else query.$text = { $search: q };
         }
@@ -147,15 +152,16 @@ export class ProblemMainHandler extends ProblemHandler {
         }
         await bus.serial('problem/list', query, this);
         // eslint-disable-next-line prefer-const
-        let [pdocs, ppcount, pcount] = await paginate(
-            problem.getMulti(domainId, query, [...problem.PROJECTION_LIST, 'data']).sort({ pid: 1, docId: 1 }),
-            page,
-            system.get('pagination.problem'),
-        );
-        if (sort) pdocs = pdocs.sort((a, b) => sort.indexOf(a.docId) - sort.indexOf(b.docId));
+        let [pdocs, ppcount, pcount] = fail
+            ? [[], 0, 0]
+            : await problem.list(
+                domainId, query, undefined,
+                page, system.get('pagination.problem'),
+            );
+        if (sort) pdocs = pdocs.sort((a, b) => sort.indexOf(`${a.domainId}/${a.docId}`) - sort.indexOf(`${b.domainId}/${b.docId}`));
         if (q) {
             const pdoc = await problem.get(domainId, +q || q, problem.PROJECTION_LIST);
-            if (pdoc) {
+            if (pdoc && (!pdoc.hidden || this.user.own(pdoc) || this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN))) {
                 const count = pdocs.length;
                 pdocs = pdocs.filter((doc) => doc.docId !== pdoc.docId);
                 pdocs.unshift(pdoc);
@@ -380,8 +386,12 @@ export class ProblemDetailHandler extends ProblemHandler {
 }
 
 export class ProblemSubmitHandler extends ProblemDetailHandler {
-    async get(domainId: string, tid?: ObjectID) {
+    @param('tid', Types.ObjectID, true)
+    async prepare(domainId: string, tid?: ObjectID) {
         if (tid && !contest.isOngoing(this.tdoc)) throw new ContestNotLiveError(this.tdoc.docId);
+    }
+
+    async get() {
         this.response.template = 'problem_submit.html';
         this.response.body = {
             pdoc: this.pdoc,
@@ -406,7 +416,7 @@ export class ProblemSubmitHandler extends ProblemDetailHandler {
         }
         if (pretest && !['default', 'fileio'].includes(this.response.body.pdoc.config?.type)) throw new BadRequestError('unable to run pretest');
         await this.limitRate('add_record', 60, system.get('limit.submission'));
-        const rid = await record.add(domainId, this.pdoc.docId, this.user._id, lang, code, true, pretest ? input : tid, !pretest);
+        const rid = await record.add(domainId, this.pdoc.docId, this.user._id, lang, code, true, pretest ? input : tid, tid && !pretest);
         const rdoc = await record.get(domainId, rid);
         if (!pretest) {
             await Promise.all([
@@ -491,6 +501,7 @@ export class ProblemFilesHandler extends ProblemDetailHandler {
     async postGetLinks(domainId: string, files: Set<string>, type = 'testdata') {
         if (type === 'testdata' && !this.user.own(this.pdoc)) {
             if (!this.user.hasPriv(PRIV.PRIV_READ_PROBLEM_DATA)) this.checkPerm(PERM.PERM_READ_PROBLEM_DATA);
+            if (this.tdoc && !contest.isDone(this.tdoc)) throw new ContestNotEndedError(this.tdoc.domainId, this.tdoc.docId);
         }
         if (this.pdoc.reference) this.pdoc = await problem.get(this.pdoc.reference.domainId, this.pdoc.reference.pid);
         const links = {};
@@ -599,6 +610,7 @@ export class ProblemFileDownloadHandler extends ProblemDetailHandler {
         }
         if (type === 'testdata' && !this.user.own(this.pdoc)) {
             if (!this.user.hasPriv(PRIV.PRIV_READ_PROBLEM_DATA)) this.checkPerm(PERM.PERM_READ_PROBLEM_DATA);
+            if (this.tdoc && !contest.isDone(this.tdoc)) throw new ContestNotEndedError(this.tdoc.domainId, this.tdoc.docId);
         }
         const target = `problem/${this.pdoc.domainId}/${this.pdoc.docId}/${type}/${filename}`;
         const file = await storage.getMeta(target);

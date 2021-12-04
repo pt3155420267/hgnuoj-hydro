@@ -16,10 +16,15 @@ import {
 import { buildProjection } from '../utils';
 import { STATUS } from './builtin';
 import * as document from './document';
+import DomainModel from './domain';
 import storage from './storage';
 
 export interface ProblemDoc extends Document { }
 export type Field = keyof ProblemDoc;
+
+function sortable(source: string) {
+    return source.replace(/(\d+)/g, (str) => (str.length >= 6 ? str : ('0'.repeat(6 - str.length) + str)));
+}
 
 export class ProblemModel {
     static PROJECTION_LIST: Field[] = [
@@ -92,7 +97,7 @@ export class ProblemModel {
         content: string, owner: number, tag: string[] = [], hidden = false,
     ) {
         const args: Partial<ProblemDoc> = {
-            title, tag, hidden, nSubmit: 0, nAccept: 0,
+            title, tag, hidden, nSubmit: 0, nAccept: 0, sort: sortable(pid || `P${docId}`),
         };
         if (pid) args.pid = pid;
         await bus.serial('problem/before-add', domainId, content, owner, docId, args);
@@ -107,6 +112,7 @@ export class ProblemModel {
     static async get(
         domainId: string, pid: string | number,
         projection: Projection<ProblemDoc> = ProblemModel.PROJECTION_PUBLIC,
+        rawConfig = false,
     ): Promise<ProblemDoc | null> {
         if (typeof pid !== 'number') {
             if (Number.isSafeInteger(parseInt(pid, 10))) pid = parseInt(pid, 10);
@@ -116,7 +122,7 @@ export class ProblemModel {
             : (await document.getMulti(domainId, document.TYPE_PROBLEM, { pid }).toArray())[0];
         if (!res) return null;
         try {
-            res.config = await parseConfig(res.config);
+            if (!rawConfig) res.config = await parseConfig(res.config);
         } catch (e) {
             res.config = `Cannot parse: ${e.message}`;
         }
@@ -124,7 +130,31 @@ export class ProblemModel {
     }
 
     static getMulti(domainId: string, query: FilterQuery<ProblemDoc>, projection = ProblemModel.PROJECTION_LIST) {
-        return document.getMulti(domainId, document.TYPE_PROBLEM, query, projection);
+        return document.getMulti(domainId, document.TYPE_PROBLEM, query, projection).sort({ sort: 1 });
+    }
+
+    static async list(
+        domainId: string, query: FilterQuery<ProblemDoc>,
+        projection = ProblemModel.PROJECTION_LIST, page: number, pageSize: number,
+    ): Promise<[ProblemDoc[], number, number]> {
+        const union = await DomainModel.getUnion(domainId);
+        const domainIds = [domainId];
+        if (union?.problem) domainIds.push(...union.union);
+        let count = 0;
+        const pdocs = [];
+        for (const id of domainIds) {
+            // TODO enhance performance
+            // eslint-disable-next-line no-await-in-loop
+            const ccount = await document.getMulti(id, document.TYPE_PROBLEM, query).count();
+            if (pdocs.length < pageSize && (page - 1) * pageSize - count <= ccount) {
+                // eslint-disable-next-line no-await-in-loop
+                pdocs.push(...await document.getMulti(id, document.TYPE_PROBLEM, query, projection)
+                    .sort({ sort: 1, docId: 1 })
+                    .skip(Math.max((page - 1) * pageSize - count, 0)).limit(pageSize - pdocs.length).toArray());
+            }
+            count += ccount;
+        }
+        return [pdocs, Math.ceil(count / pageSize), count];
     }
 
     static getStatus(domainId: string, docId: number, uid: number) {
@@ -137,7 +167,12 @@ export class ProblemModel {
 
     static async edit(domainId: string, _id: number, $set: Partial<ProblemDoc>): Promise<ProblemDoc> {
         const delpid = $set.pid === '';
-        if (delpid) delete $set.pid;
+        if (delpid) {
+            delete $set.pid;
+            $set.sort = sortable(`P${_id}`);
+        } else if ($set.pid) {
+            $set.sort = sortable($set.pid);
+        }
         await bus.serial('problem/before-edit', $set);
         const result = await document.set(domainId, document.TYPE_PROBLEM, _id, $set, delpid ? { pid: '' } : undefined);
         await bus.emit('problem/edit', result);

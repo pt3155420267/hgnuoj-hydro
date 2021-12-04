@@ -131,9 +131,9 @@ class UserLoginHandler extends Handler {
         this.session.uid = udoc._id;
         this.session.scope = PERM.PERM_ALL.toString();
         this.session.save = rememberme;
-        this.response.redirect = redirect || (this.request.referer || '/login').endsWith('/login')
+        this.response.redirect = redirect || ((this.request.referer || '/login').endsWith('/login')
             ? this.url('homepage')
-            : this.request.referer;
+            : this.request.referer);
     }
 }
 
@@ -168,7 +168,7 @@ export class UserRegisterHandler extends Handler {
             const t = await token.add(
                 token.TYPE_REGISTRATION,
                 system.get('session.unsaved_expire_seconds'),
-                { mail },
+                { mail, redirect: this.domain.registerRedirect },
             );
             if (system.get('smtp.verify') && system.get('smtp.user')) {
                 const m = await this.renderHTML('user_register_mail.html', {
@@ -213,7 +213,7 @@ class UserRegisterWithCodeHandler extends Handler {
 
     @param('password', Types.String, isPassword)
     @param('verifyPassword', Types.String)
-    @param('uname', Types.String, isUname)
+    @param('uname', Types.Name, isUname)
     @param('code', Types.String)
     // 学生信息
     @param('stuname', Types.String, (s) => /^[\u4E00-\u9FA5]{2,4}$/.test(s))
@@ -253,9 +253,7 @@ class UserRegisterWithCodeHandler extends Handler {
         this.session.viewLang = '';
         this.session.uid = uid;
         this.session.scpoe = PERM.PERM_ALL.toString();
-        this.response.redirect = this.url('home_settings', {
-            category: 'preference',
-        });
+        this.response.redirect = tdoc.redirect || this.url('home_settings', { category: 'preference' });
     }
 }
 
