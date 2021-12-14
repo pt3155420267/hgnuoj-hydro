@@ -108,8 +108,19 @@ export const SystemSetting = (...settings: _Setting[]) => {
 const LangSettingNode = {
     family: 'setting_usage',
     key: 'codeLang',
-    value: 'c',
+    value: '',
     name: 'codeLang',
+    desc: 'Default Code Language',
+    flag: 0,
+    subType: '',
+    type: 'select',
+    range: {},
+};
+const ServerLangSettingNode = {
+    family: 'setting_server',
+    key: 'preference.codeLang',
+    value: '',
+    name: 'preference.codeLang',
     desc: 'Default Code Language',
     flag: 0,
     subType: '',
@@ -202,6 +213,7 @@ SystemSetting(
     Setting('setting_server', 'server.login', true, 'boolean', 'server.login', 'Allow builtin-login', FLAG_PRO),
     Setting('setting_server', 'server.message', true, 'boolean', 'server.message', 'Allow users send messages'),
     Setting('setting_server', 'server.ignoreUA', ignoreUA, 'textarea', 'server.ignoreUA', 'ignoredUA'),
+    ServerLangSettingNode,
     Setting('setting_limits', 'limit.problem_files_max', 100, 'number', 'limit.problem_files_max', 'Max files per problem'),
     Setting('setting_limits', 'limit.problem_files_max_size', 256 * 1024 * 1024, 'number', 'limit.problem_files_max_size', 'Max files size per problem'),
     Setting('setting_limits', 'limit.user_files', 100, 'number', 'limit.user_files', 'Max files for user'),
@@ -248,6 +260,7 @@ bus.once('app/started', async () => {
         const range = {};
         for (const key in langs) range[key] = langs[key].display;
         LangSettingNode.range = range;
+        ServerLangSettingNode.range = range;
     } catch (e) { /* Ignore */ }
 });
 
@@ -258,6 +271,7 @@ bus.on('system/setting', (args) => {
         const range = {};
         for (const key in langs) range[key] = langs[key].display;
         LangSettingNode.range = range;
+        ServerLangSettingNode.range = range;
     }
 });
 
