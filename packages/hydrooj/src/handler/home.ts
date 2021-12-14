@@ -100,6 +100,8 @@ class HomeHandler extends Handler {
         if (this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) {
             const pdocs = await problem.getMulti(domainId, { hidden: false })
                 .sort({ _id: -1 }).limit(limit).toArray();
+            const uids = pdocs.map((pdoc) => pdoc.owner);
+            this.collectUser(uids);
             return ['latestProblems', pdocs];
         }
         return ['latestProblems', []];
