@@ -4,7 +4,8 @@ import moment from 'moment-timezone';
 import { ObjectID } from 'mongodb';
 import { Time } from '@hydrooj/utils/lib/utils';
 import {
-    ContestNotFoundError, HomeworkNotLiveError, ValidationError,
+    ContestNotFoundError, ForbiddenError, HomeworkNotLiveError,
+    ValidationError,
 } from '../error';
 import { PenaltyRules } from '../interface';
 import paginate from '../lib/paginate';
@@ -40,6 +41,17 @@ class HomeworkMainHandler extends Handler {
 }
 
 class HomeworkDetailHandler extends Handler {
+    @param('tid', Types.ObjectID)
+    async prepare(domainId: string, tid: ObjectID) {
+        const tdoc = await contest.get(domainId, tid);
+        if (tdoc.rule !== 'homework') throw new ContestNotFoundError(domainId, tid);
+        if (tdoc.assign) {
+            if (!Set.intersection(tdoc.assign, this.user.group).size) {
+                throw new ForbiddenError('You are not assigned.');
+            }
+        }
+    }
+
     @param('tid', Types.ObjectID)
     @param('page', Types.PositiveInt, true)
     async get(domainId: string, tid: ObjectID, page = 1) {
@@ -159,7 +171,7 @@ class HomeworkEditHandler extends Handler {
         const endAt = penaltySince.clone().add(extensionDays, 'days');
         if (beginAt.isSameOrAfter(penaltySince)) throw new ValidationError('endAtDate', 'endAtTime');
         if (penaltySince.isAfter(endAt)) throw new ValidationError('extensionDays');
-        await problem.getList(domainId, pids, this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id, true);
+        await problem.getList(domainId, pids, this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id, this.user.group, true);
         if (!tid) {
             tid = await contest.add(domainId, title, content, this.user._id,
                 'homework', beginAt.toDate(), endAt.toDate(), pids, rated,
@@ -212,7 +224,7 @@ class HomeworkScoreboardDownloadHandler extends Handler {
             csv: (rows) => `\uFEFF${rows.map((c) => (c.map((i) => i.value).join(','))).join('\n')}`,
             html: (rows) => this.renderHTML('contest_scoreboard_download_html.html', { rows }),
         };
-        if (!getContent[ext]) throw new ValidationError('ext');
+        if (!getContent[ext]) throw new ValidationError('ext', null, 'Unknown file extension');
         const [tdoc, rows] = await contest.getScoreboard.call(this, domainId, tid, true, 0);
         this.binary(await getContent[ext](rows), `${tdoc.title}.${ext}`);
     }

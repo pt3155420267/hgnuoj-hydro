@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import { statSync } from 'fs';
 import { pick } from 'lodash';
-import { lookup } from 'mime-types';
 import {
     BadRequestError, ForbiddenError, ValidationError,
 } from '../error';
@@ -66,6 +65,13 @@ export class FilesHandler extends Handler {
         this.back();
     }
 
+    @post('from', Types.String)
+    @post('to', Types.String)
+    async postRename(domainId: string, from: string, to: string) {
+        await storage.rename(`user/${this.user._id}/${from}`, `user/${this.user._id}/${to}`);
+        this.back();
+    }
+
     @post('files', Types.Array)
     async postDeleteFiles(domainId: string, files: string[]) {
         await Promise.all([
@@ -84,34 +90,13 @@ export class FSDownloadHandler extends Handler {
         this.response.addHeader('Cache-Control', 'public');
         const target = `user/${uid}/${filename}`;
         const file = await storage.getMeta(target);
-        await oplog.add({
-            type: 'download',
-            time: new Date(),
-            uid: this.user._id,
-            ip: this.request.ip,
-            fileType: 'user',
+        await oplog.log(this, 'download.file.user', {
             target,
-            referer: this.request.referer,
             size: file?.size || 0,
         });
-        if (!file) {
-            this.response.redirect = await storage.signDownloadLink(
-                target, noDisposition ? undefined : filename, false, 'user',
-            );
-            return;
-        }
-        const type = lookup(filename).toString();
-        const shouldProxy = ['image', 'video', 'audio', 'pdf', 'vnd'].filter((i) => type.includes(i)).length;
-        if (shouldProxy && file.size! < 32 * 1024 * 1024) {
-            this.response.etag = file.etag;
-            this.response.body = await storage.get(target);
-            this.response.type = file['Content-Type'] || type;
-            if (!noDisposition) this.response.disposition = `attachment; filename=${encodeURIComponent(filename)}`;
-        } else {
-            this.response.redirect = await storage.signDownloadLink(
-                target, noDisposition ? undefined : filename, false, 'user',
-            );
-        }
+        this.response.redirect = await storage.signDownloadLink(
+            target, noDisposition ? undefined : filename, false, 'user',
+        );
     }
 }
 

@@ -84,6 +84,7 @@ export interface Types {
     Range: (range: Array<string | number> | Dictionary<any>) => Type,
     Array: Type,
     NumericArray: Type,
+    CommaSeperatedArray: Type,
     Set: Type,
 }
 
@@ -163,6 +164,10 @@ export const Types: Types = {
         if (v instanceof Array) return !v.map(Number).includes(NaN);
         return !Number.isNaN(+v);
     }],
+    CommaSeperatedArray: [
+        (v) => v.toString().replace(/，/g, ',').split(',').map((e) => e.trim()).filter((i) => i),
+        (v) => v.toString(),
+    ],
     Set: [(v) => {
         if (v instanceof Array) return new Set(v);
         return v ? new Set([v]) : new Set();
@@ -499,6 +504,7 @@ export class Handler extends HandlerCommon {
     }
 
     async init({ domainId }) {
+        let error;
         if (!argv.options.benchmark && !this.notUsage) await this.limitRate('global', 10, 88);
         const [absoluteDomain, inferDomain, bdoc] = await Promise.all([
             domain.get(domainId),
@@ -516,7 +522,8 @@ export class Handler extends HandlerCommon {
             this.args.domainId = 'system';
             this.user = await user.getById('system', this.session.uid);
             if (!this.user) this.user = await user.getById('system', 0);
-            throw new NotFoundError(domainId);
+            this.domain = inferDomain || await domain.get('system');
+            error = new NotFoundError(domainId);
         }
         this.UiContext.domainId = this.domainId;
         this.UiContext.domain = this.domain;
@@ -536,6 +543,7 @@ export class Handler extends HandlerCommon {
                 icon: global.Hydro.lib[key].icon,
                 text: global.Hydro.lib[key].text,
             }));
+        if (error) throw error;
         if (bdoc) throw new BlacklistedError(this.request.ip);
         if (!this.noCheckPermView && !this.user.hasPriv(PRIV.PRIV_VIEW_ALL_DOMAIN)) this.checkPerm(PERM.PERM_VIEW);
         if (this.request.method === 'post' && this.request.headers.referer) {
@@ -698,7 +706,7 @@ async function handle(ctx, HandlerClass, checker) {
             } else if (typeof h.post !== 'function') {
                 throw new MethodNotAllowedError(method);
             }
-        } else if (typeof h[method] !== 'function') {
+        } else if (typeof h[method] !== 'function' && typeof h.all !== 'function') {
             throw new MethodNotAllowedError(method);
         }
 
@@ -712,6 +720,7 @@ async function handle(ctx, HandlerClass, checker) {
         await bail(`handler/before/${HandlerClass.name.replace(/Handler$/, '')}`, h);
         await bail('handler/before', h);
         h.args.__method = Date.now();
+        if (h.all) await h.all(args);
         if (h[method]) await h[method](args);
         h.args.__methodDone = Date.now();
         await bail(`handler/before-operation/${HandlerClass.name.replace(/Handler$/, '')}`, h);
@@ -725,8 +734,8 @@ async function handle(ctx, HandlerClass, checker) {
         await bail('handler/finish', h);
     } catch (e) {
         try {
-            await bail(`handler/error/${HandlerClass.name.replace(/Handler$/, '')}`, h);
-            await bail('handler/error', h);
+            await bail(`handler/error/${HandlerClass.name.replace(/Handler$/, '')}`, h, e);
+            await bail('handler/error', h, e);
             await h.onerror(e);
         } catch (err) {
             h.response.code = 500;
@@ -859,13 +868,15 @@ export function Connection(
             const args = { domainId: 'system', ...h.request.params };
             h.args = args;
             h.domainId = args.domainId;
-            const cookie = await new Promise((r) => {
-                conn.once('data', r);
-            });
-            args.cookie = cookie;
-            await h.init(args);
-            conn.write(JSON.stringify({ event: 'auth' }));
-            checker.call(h);
+            if (!h.noAuth) {
+                const cookie = await new Promise((r) => {
+                    conn.once('data', r);
+                });
+                args.cookie = cookie;
+                await h.init(args);
+                conn.write(JSON.stringify({ event: 'auth' }));
+                checker.call(h);
+            }
 
             if (h._prepare) await h._prepare(args);
             if (h.prepare) await h.prepare(args);

@@ -14,6 +14,7 @@ import BlackListModel from '../model/blacklist';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import domain from '../model/domain';
 import oauth from '../model/oauth';
+import * as oplog from '../model/oplog';
 import problem, { ProblemDoc } from '../model/problem';
 import student from '../model/stuinfo';
 import * as system from '../model/system';
@@ -124,7 +125,10 @@ class UserLoginHandler extends Handler {
             if (studoc) udoc = await user.getById(domainId, studoc._id);
         }
         if (!udoc) throw new UserNotFoundError(uname);
-        await this.limitRate('user_login', 60, 5);
+        await Promise.all([
+            this.limitRate('user_login', 60, 5),
+            oplog.log(this, 'user.login', { redirect }),
+        ]);
         if (udoc._tfa && !verifyToken(udoc._tfa, tfa)) throw new InvalidTokenError('2FA token invalid.');
         udoc.checkPassword(password);
         await user.setById(udoc._id, { loginat: new Date(), loginip: this.request.ip });
@@ -338,7 +342,12 @@ class UserDetailHandler extends Handler {
         const canViewHidden = this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id;
         await Promise.all([domainId, ...(union?.union || [])].map(async (did) => {
             const psdocs = await problem.getMultiStatus(did, { uid, status: STATUS.STATUS_ACCEPTED }).toArray();
-            pdocs.push(...Object.values(await problem.getList(did, psdocs.map((i) => i.docId), canViewHidden, false, undefined, true)));
+            pdocs.push(...Object.values(
+                await problem.getList(
+                    did, psdocs.map((i) => i.docId), canViewHidden,
+                    this.user.group, false, undefined, true,
+                ),
+            ));
         }));
         for (const pdoc of pdocs) {
             for (const tag of pdoc.tag) {

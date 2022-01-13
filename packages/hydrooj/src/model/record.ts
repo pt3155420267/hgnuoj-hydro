@@ -30,11 +30,11 @@ class RecordModel {
         const pending = await task.count({ uid });
         const timeRecent = await RecordModel.coll
             .find({ _id: { $gte: Time.getObjectID(moment().add(-1, 'hour')) }, uid }).project({ time: 1 }).toArray();
-        return base - ((pending + 0.5) * (sum(timeRecent.map((i) => i.time || 0)) / 10000));
+        return base - ((pending * 1000 + 1) * (sum(timeRecent.map((i) => i.time || 0)) / 10000));
     }
 
-    static async get(_id: ObjectID): Promise<RecordDoc | null>
-    static async get(domainId: string, _id: ObjectID): Promise<RecordDoc | null>
+    static async get(_id: ObjectID): Promise<RecordDoc | null>;
+    static async get(domainId: string, _id: ObjectID): Promise<RecordDoc | null>;
     static async get(arg0: string | ObjectID, arg1?: any) {
         const _id = arg1 || arg0;
         const domainId = arg1 ? arg0 : null;

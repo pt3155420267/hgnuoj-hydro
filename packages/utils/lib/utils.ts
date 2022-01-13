@@ -27,7 +27,7 @@ declare global {
     }
     interface SetConstructor {
         isSuperset: (set: Set<any>, subset: Set<any>) => boolean;
-        intersection: <T>(setA: Set<T>, setB: Set<T>) => Set<T>;
+        intersection: <T>(setA: Set<T> | Array<T>, setB: Set<T> | Array<T>) => Set<T>;
         union: <T>(setA: Set<T>, setB: Set<T>) => Set<T>;
     }
 }
@@ -130,9 +130,11 @@ Set.union = function Union<T>(setA: Set<T>, setB: Set<T>) {
     return union;
 };
 
-Set.intersection = function Intersection<T>(setA: Set<T>, setB: Set<T>) {
+Set.intersection = function Intersection<T>(A: Set<T> | Array<T> = [], B: Set<T> | Array<T> = []) {
     const intersection = new Set<T>();
-    for (const elem of setB) if (setA.has(elem)) intersection.add(elem);
+    if (A instanceof Array) A = new Set(A);
+    if (B instanceof Array) B = new Set(B);
+    for (const elem of B) if (A.has(elem)) intersection.add(elem);
     return intersection;
 };
 
@@ -344,7 +346,7 @@ export async function findFile(pathname: string, doThrow = true) {
     return null;
 }
 
-export function findFileSync(pathname: string, doThrow = true) {
+export function findFileSync(pathname: string, doThrow: boolean | Error = true) {
     if (fs.pathExistsSync(path.resolve(pathname))) return path.resolve(pathname);
     if (fs.pathExistsSync(path.resolve(process.cwd(), pathname))) return path.resolve(process.cwd(), pathname);
     if (fs.pathExistsSync(path.resolve(__dirname, pathname))) return path.resolve(__dirname, pathname);
@@ -364,7 +366,7 @@ export function findFileSync(pathname: string, doThrow = true) {
     if (fs.pathExistsSync(path.resolve(os.homedir(), pathname))) return path.resolve(os.homedir(), pathname);
     if (fs.pathExistsSync(path.resolve(os.homedir(), '.hydro', pathname))) return path.resolve(os.homedir(), '.hydro', pathname);
     if (fs.pathExistsSync(path.resolve(os.homedir(), '.config', 'hydro', pathname))) return path.resolve(os.homedir(), '.config', 'hydro', pathname);
-    if (doThrow) throw new Error(`File ${pathname} not found`);
+    if (doThrow) throw (typeof doThrow !== 'boolean' ? doThrow : new Error(`File ${pathname} not found`));
     return null;
 }
 

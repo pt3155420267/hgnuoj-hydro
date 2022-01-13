@@ -92,6 +92,9 @@ Begin Time: 开始时间
 Belongs to: 属于
 Bio Visibility: 个人简介可见性
 Bio: 个人简介
+blog_detail: 博客详情
+blog_edit: 编辑博客
+blog_main: 博客
 Blog: 博客
 Bold: 加粗
 Boom!: 炸了！
@@ -256,6 +259,7 @@ domain_dashboard: 管理域
 domain_discussion: 讨论节点
 domain_edit: 编辑域资料
 domain_file: 我的文件
+domain_group: 管理小组
 domain_join_applications: 加域申请
 domain_join: 加入域
 domain_main: 首页
@@ -436,6 +440,7 @@ Location: 位置
 Login to Attend Contest: 登录后参加比赛
 Login to Claim Homework: 登录后认领作业
 Login to Create a Discussion: 登录后创建讨论
+Login to join training plan: 登录以参加训练计划
 Login to Submit: 登录后递交
 Login: 登录
 Logout All Sessions: 注销所有会话
