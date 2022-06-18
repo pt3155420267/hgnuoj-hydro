@@ -247,7 +247,7 @@ class SystemStudentImportHandler extends SystemHandler {
                 else if (!isPassword(password)) messages.push(`Line ${+i + 1}: Invalid password`);
                 else if (!/^[\u4E00-\u9FA5]{2,4}$/.test(realname)) messages.push(`Line ${+i + 1}: Invalid realname`);
                 else if (!/^[\u4E00-\u9FA5]{2,4}[1-2][0-9]{3}$/.test(classname)) messages.push(`Line ${+i + 1}: Invalid classname`);
-                else if (!/^2\d{7}$|2\d{12}$/.test(stuid)) messages.push(`Line ${+i + 1}: Invalid realname`);
+                else if (!/^2\d{7}$|2\d{12}$/.test(stuid)) messages.push(`Line ${+i + 1}: Invalid stuid`);
                 // eslint-disable-next-line no-await-in-loop
                 else if (await user.getByEmail('system', email)) {
                     messages.push(`Line ${+i + 1}: Email ${email} already exists.`);
