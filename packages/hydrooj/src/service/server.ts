@@ -228,7 +228,7 @@ export class Handler extends HandlerCommon {
     }
 
     async init() {
-        if (!argv.options.benchmark) await this.limitRate('global', 5, 88);
+        if (!argv.options.benchmark) await this.limitRate('global', 1, 10000000);
         if (!this.noCheckPermView && !this.user.hasPriv(PRIV.PRIV_VIEW_ALL_DOMAIN)) this.checkPerm(PERM.PERM_VIEW);
         this.loginMethods = filter(Object.keys(global.Hydro.lib), (str) => str.startsWith('oauth_'))
             .map((key) => ({
