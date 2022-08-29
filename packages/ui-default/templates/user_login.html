@@ -3,6 +3,12 @@
 <div class="row"><div class="columns">
   <div class="immersive--content immersive--center">
     <h1>{{ _('Login') }}</h1>
+    <blockquote class="warn">
+      <p>温馨提示:</p>
+      <p>莆田二中2021级(高二)的同学,请使用分班前的班级座号登录平台!</p>
+      <br>
+      <p>平台暂未有新班级的数据，故新班级暂时还未更新上服务器。</p>
+    </blockquote>
     <form method="POST">
       {% if model.system.get('server.login') %}
       <div class="row"><div class="columns">
