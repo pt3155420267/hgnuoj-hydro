@@ -29,10 +29,9 @@ puppeteer.use(StealthPlugin()).use(PortalPlugin({
 }));
 
 function parseProblemId(id: string) {
-    logger.info('---------------------------', id);
     const [, type, contestId, problemId] = id.startsWith('P921')
         ? ['', '921', '01']
-        : /^(P|GYM)(\d+)([A-Z]*[0-9]*)$/.exec(id);
+        : /^(P|GYM)(\d+)([A-Z][0-9]*)$/.exec(id);
     if (type === 'GYM' && (+contestId) < 100000) {
         return [type, ((+contestId) + 100000).toString(), problemId];
     }
@@ -57,6 +56,25 @@ export function getDifficulty(tags: string[]) {
     for (const [i, j] of map) if (+d < i) return j;
     return 10;
 }
+
+const sampleParser = (mode: 'input' | 'output') =>
+    function parseSample(node: Element, index: number) {
+        if (!node.innerHTML.includes('test-example-line')) {
+            return `\n
+\`\`\`${mode}${index + 1}
+${node.innerHTML.trim()}
+\`\`\`
+\n`;
+        }
+        const lines = [...node.children];
+        const highlighted = lines.map((i, l) => [i, l] as [Element, number])
+            .filter(([i]) => i.className.includes('odd')).map(([, i]) => i + 1);
+        return `\n
+\`\`\`${mode}${index + 1}|${highlighted.join(',')}
+${lines.map((i) => i.innerHTML).join('\n').trim()}
+\`\`\`
+\n`;
+    };
 
 export default class CodeforcesProvider implements IBasicProvider {
     constructor(public account: RemoteAccount, private save: (data: any) => Promise<void>) {
@@ -258,19 +276,12 @@ export default class CodeforcesProvider implements IBasicProvider {
     async getProblem(id: string, meta: Record<string, any>) {
         logger.info(id);
         if (id === 'P936E') return null; // Problem Missing
-        if (id.startsWith('GYM') && !Number.isNaN(Number(id[9]))) return null; // GYM Problem Missing
         const [, contestId, problemId] = parseProblemId(id);
         const res = await this.get(id.startsWith('GYM')
             ? `/gym/${contestId}/problem/${problemId}`
             : `/problemset/problem/${contestId}/${problemId}`);
         if (!res.text) return await this.getPdfProblem(id, meta);
         const $dom = new JSDOM(res.text.replace(/\$\$\$/g, '$'));
-        const judgestatement = $dom.window.document.querySelector('html').innerHTML;
-        if (judgestatement.search('<th>Actions</th>') !== -1
-            || judgestatement.search('Statement is not available on English language') !== -1
-            || judgestatement.search('ограничение по времени на тест') !== -1) {
-            return null;
-        }
         const tag = Array.from($dom.window.document.querySelectorAll('.tag-box')).map((i) => i.textContent.trim());
         const text = $dom.window.document.querySelector('.problem-statement').innerHTML;
         const { window: { document } } = new JSDOM(text);
@@ -293,8 +304,8 @@ export default class CodeforcesProvider implements IBasicProvider {
         document.querySelector('.note')?.firstChild.remove();
         const input = document.querySelector('.input-specification')?.innerHTML.trim();
         const output = document.querySelector('.output-specification')?.innerHTML.trim();
-        const inputs = Array.from(document.querySelectorAll('.input>pre')).map((i) => i.innerHTML.trim().replace(/<br>/g, '\n'));
-        const outputs = Array.from(document.querySelectorAll('.output>pre')).map((i) => i.innerHTML.trim().replace(/<br>/g, '\n'));
+        const inputs = Array.from(document.querySelectorAll('.input>pre')).map(sampleParser('input'));
+        const outputs = Array.from(document.querySelectorAll('.output>pre')).map(sampleParser('output'));
         const note = document.querySelector('.note')?.innerHTML.trim();
         document.querySelector('.note')?.remove();
         document.querySelector('.sample-tests')?.remove();
@@ -322,9 +333,9 @@ export default class CodeforcesProvider implements IBasicProvider {
                 ...output ? [{
                     type: 'Text', sectionTitle: 'Output', subType: 'markdown', text: output,
                 }] : [],
-                ...inputs.map((_, i) => ({
-                    type: 'Sample', payload: [inputs[i], outputs[i]], text: '', sectionTitle: 'Samples',
-                }) as any),
+                ...inputs.length ? [{
+                    type: 'Plain', text: [...inputs, ...outputs].join('\n'),
+                }] : [] as any,
                 ...note ? [{
                     type: 'Text', sectionTitle: 'Note', subType: 'markdown', text: note,
                 }] : [],
@@ -333,7 +344,7 @@ export default class CodeforcesProvider implements IBasicProvider {
     }
 
     // TL;DR; add `gym` to this list to enable codeforces gym
-    entryProblemLists = ['main', 'gym'];
+    entryProblemLists = ['main'];
     async listProblem(page: number, resync = false, listName: string) {
         if (resync && page > 1) return [];
         if (resync && listName.startsWith('GYM')) return [];
@@ -353,7 +364,7 @@ export default class CodeforcesProvider implements IBasicProvider {
             return Array.from(document.querySelectorAll('.id>a')).map((i) => `P${i.innerHTML.trim()}`);
         }
         if (listName === 'gym') {
-            return Array.from(document.querySelectorAll('[data-contestId]')).map((i) => `LIST::GYM${(+i.getAttribute('data-contestId'))}`);
+            return Array.from(document.querySelectorAll('[data-contestId]')).map((i) => `LIST::GYM${(+i.getAttribute('data-contestId')) - 100000}`);
         }
         return Array.from(document.querySelectorAll('.id a')).map((i) => {
             const detail = i.parentElement.parentElement.children[1].children[0];
@@ -370,7 +381,7 @@ export default class CodeforcesProvider implements IBasicProvider {
         const programTypeId = lang.includes('codeforces.') ? lang.split('codeforces.')[1] : '54';
         const comment = setting.langs[lang].comment;
         if (comment) {
-            const msg = `HGNUOJ submission #${info.rid}@${new Date().getTime()}`;
+            const msg = `Hydro submission #${info.rid}@${new Date().getTime()}`;
             if (typeof comment === 'string') code = `${comment} ${msg}\n${code}`;
             else if (comment instanceof Array) code = `${comment[0]} ${msg} ${comment[1]}\n${code}`;
         }
