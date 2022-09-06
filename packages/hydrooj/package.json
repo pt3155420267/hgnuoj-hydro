@@ -15,7 +15,7 @@
     "@graphql-tools/schema": "^8.5.1",
     "@hydrooj/utils": "workspace:*",
     "adm-zip": "0.5.5",
-    "cac": "^6.7.12",
+    "cac": "^6.7.14",
     "cookies": "^0.8.0",
     "detect-browser": "^5.3.0",
     "emoji-regex": "^10.1.0",
